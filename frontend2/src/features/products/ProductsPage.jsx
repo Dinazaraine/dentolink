@@ -1,23 +1,23 @@
 import Card from "../../components/Card.jsx";
 import { useState } from "react";
 import Footer from "../../layout/Footer.jsx"; // <-- Import du footer
-
 // ✅ Importation des images locales pour Physique
 import physique1 from "./Physique/all.png";
 import physique2 from "./Physique/aligner.png";
 import physique3 from "./Physique/amovible.png";
-import physique4 from "./Physique/blancissement.PNG";
-import physique5 from "./Physique/bridge.PNG";
-import physique6 from "./Physique/contention.PNG";
-import physique7 from "./Physique/courrone.PNG";
-import physique8 from "./Physique/courrone1.PNG";
-import physique9 from "./Physique/facette.PNG";
-import physique10 from "./Physique/inlay onlay.PNG";
-import physique11 from "./Physique/lithyum.PNG";
-import physique12 from "./Physique/metalique.PNG";
-import physique13 from "./Physique/peek.PNG";
-import physique14 from "./Physique/tcs.PNG";
-import physique15 from "./Physique/zircone.PNG";
+import physique4 from "./Physique/blancissement.png";  // corrigé
+import physique5 from "./Physique/bridge.png";
+import physique6 from "./Physique/contention.png";
+import physique7 from "./Physique/couronne.png";       // corrigé
+import physique8 from "./Physique/couronne1.png";      // corrigé
+import physique9 from "./Physique/facette.png";
+import physique10 from "./Physique/inlay-onlay.png";   // corrigé
+import physique11 from "./Physique/lithium.png";       // corrigé
+import physique12 from "./Physique/metalique.png";
+import physique13 from "./Physique/peek.png";
+import physique14 from "./Physique/tcs.png";
+import physique15 from "./Physique/zircone.png";
+
 
 // ✅ Importation des images locales pour Design
 import design0 from "./Design/0.PNG";
