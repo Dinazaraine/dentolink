@@ -1,0 +1,31 @@
+# Ignorer les dépendances
+node_modules
+package-lock.json
+
+# Ignorer les fichiers sensibles
+.env
+*.env
+
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Build
+dist
+dist-ssr
+
+# Editor / système
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
