@@ -2,17 +2,18 @@ import Card from "../../components/Card.jsx";
 import { useState } from "react";
 import Footer from "../../layout/Footer.jsx"; // <-- Import du footer
 // ✅ Importation des images locales pour Physique
+// ✅ Importation des images locales pour Physique (tout en minuscules, tirets corrigés)
 import physique1 from "./Physique/all.png";
 import physique2 from "./Physique/aligner.png";
 import physique3 from "./Physique/amovible.png";
-import physique4 from "./Physique/blancissement.png";  // corrigé
+import physique4 from "./Physique/blancissement.png";
 import physique5 from "./Physique/bridge.png";
 import physique6 from "./Physique/contention.png";
-import physique7 from "./Physique/couronne.png";       // corrigé
-import physique8 from "./Physique/couronne1.png";      // corrigé
+import physique7 from "./Physique/couronne.png";
+import physique8 from "./Physique/couronne1.png";
 import physique9 from "./Physique/facette.png";
-import physique10 from "./Physique/inlay-onlay.png";   // corrigé
-import physique11 from "./Physique/lithium.png";       // corrigé
+import physique10 from "./Physique/inlay-onlay.png";   // <--- renommé
+import physique11 from "./Physique/lithium.png";       // <--- renommé
 import physique12 from "./Physique/metalique.png";
 import physique13 from "./Physique/peek.png";
 import physique14 from "./Physique/tcs.png";
