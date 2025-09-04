@@ -1,5 +1,8 @@
 // src/auth/api.js
-const BASE = "http://localhost:3000/api"; // ← adapte
+// src/services/api.js (ou n'importe quel fichier central)
+export const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
+export const BASE = `${API_URL}/api`;
+
 
 export async function loginApi({ email, password }) {
   const r = await fetch(`${BASE}/auth/login`, {
