@@ -6,7 +6,7 @@ dotenv.config();
 const mysql = require("mysql2"); // API callback (pas de /promise)
 
 /** Pool de connexions MySQL */
-f (process.env.DATABASE_URL) {
+if (process.env.DATABASE_URL) {
   // Render ou production
   pool = mysql.createPool(process.env.DATABASE_URL);
 } else {
