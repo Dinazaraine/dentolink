@@ -6,15 +6,19 @@ dotenv.config();
 const mysql = require("mysql2"); // API callback (pas de /promise)
 
 /** Pool de connexions MySQL */
-const pool = mysql.createPool({
-  process.env.DATABASE_URL || {
+f (process.env.DATABASE_URL) {
+  // Render ou production
+  pool = mysql.createPool(process.env.DATABASE_URL);
+} else {
+  // Local (fichier .env)
+  pool = mysql.createPool({
     host: process.env.DB_HOST,
     user: process.env.DB_USER,
     password: process.env.DB_PASSWORD,
     database: process.env.DB_NAME,
     port: process.env.DB_PORT || 3306
-  }
-});
+  });
+}
 
 /** Helper de requête (callbacks) */
 function query(sql, params, cb) {
