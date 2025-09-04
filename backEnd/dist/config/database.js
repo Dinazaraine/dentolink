@@ -4,7 +4,7 @@ const dotenv = require("dotenv");
 dotenv.config();
 
 const mysql = require("mysql2"); // API callback (pas de /promise)
-
+let pool;
 /** Pool de connexions MySQL */
 if (process.env.DATABASE_URL) {
   // Render ou production
