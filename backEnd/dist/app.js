@@ -25,7 +25,7 @@ try {
 const app = express();
 
 /* --------------------------- CORS --------------------------- */
-const allowedOrigins = (process.env.CORS_ORIGIN ?? "http://localhost:5173")
+const allowedOrigins = ("https://dentolink-5h6k.vercel.app" ?? "http://localhost:5173")
   .split(",")
   .map((o) => o.trim());
 
