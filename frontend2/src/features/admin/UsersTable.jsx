@@ -1,14 +1,21 @@
 import { useEffect, useState } from "react";
 import { adminApi } from "./AdminApi.js";
 import UserOnlineDot from "../../components/UserOnlineDot.jsx";
+import "bootstrap/dist/css/bootstrap.min.css";
+import "bootstrap-icons/font/bootstrap-icons.css";
 
-const roleOptions = ["user", "admin"];
+const roleOptions = ["user", "dentiste", "admin"];
 const statusOptions = ["pending", "approved", "rejected", "suspended"];
 
 export default function UsersTable() {
   const [rows, setRows] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState({ role: "", status: "" });
+  const [search, setSearch] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [alert, setAlert] = useState({ type: "", message: "" });
+
+  const USERS_PER_PAGE = 5;
 
   // Récupération des données
   const fetchData = async () => {
@@ -21,157 +28,169 @@ export default function UsersTable() {
       setRows(data);
     } catch (e) {
       console.error(e);
-      alert(e.message);
+      setAlert({ type: "danger", message: e.message });
     } finally {
       setLoading(false);
     }
   };
 
-  // Auto-refresh toutes les 10 secondes
   useEffect(() => {
     fetchData();
     const interval = setInterval(fetchData, 10000);
     return () => clearInterval(interval);
   }, [filters]);
 
-  const applyFilters = (e) => {
-    e?.preventDefault?.();
-    fetchData();
-  };
+  // Recherche (nom, email, rôle, statut)
+  const filteredUsers = rows.filter((u) => {
+    const s = search.toLowerCase();
+    return (
+      u.email?.toLowerCase().includes(s) ||
+      `${u.firstName} ${u.lastName}`.toLowerCase().includes(s) ||
+      u.role?.toLowerCase().includes(s) ||
+      u.accountStatus?.toLowerCase().includes(s)
+    );
+  });
 
+  // Pagination
+  const totalPages = Math.ceil(filteredUsers.length / USERS_PER_PAGE);
+  const indexOfLast = currentPage * USERS_PER_PAGE;
+  const indexOfFirst = indexOfLast - USERS_PER_PAGE;
+  const currentUsers = filteredUsers.slice(indexOfFirst, indexOfLast);
+
+  // Handlers
   const onRoleChange = async (id, role) => {
     try {
       await adminApi.setRole(id, role);
+      setAlert({ type: "success", message: "Rôle mis à jour ✅" });
       fetchData();
     } catch (e) {
-      alert(e.message);
+      setAlert({ type: "danger", message: e.message });
     }
   };
 
   const onStatusChange = async (id, accountStatus) => {
     try {
       await adminApi.setStatus(id, accountStatus);
+      setAlert({ type: "success", message: "Statut mis à jour ✅" });
       fetchData();
     } catch (e) {
-      alert(e.message);
-    }
-  };
-
-  const onResetPassword = async (id) => {
-    const newPassword = prompt("Nouveau mot de passe (min 6 caractères) :");
-    if (!newPassword) return;
-    try {
-      await adminApi.resetPassword(id, newPassword);
-      alert("Mot de passe mis à jour.");
-    } catch (e) {
-      alert(e.message);
-    }
-  };
-
-  const onToggleForceReset = async (id, currentFlag) => {
-    try {
-      await adminApi.setForceReset(id, !currentFlag);
-      fetchData();
-    } catch (e) {
-      alert(e.message);
+      setAlert({ type: "danger", message: e.message });
     }
   };
 
   return (
-    <div className="space-y-4">
-      {/* Filtres */}
-      <form
-        onSubmit={applyFilters}
-        className="flex items-center gap-3 flex-wrap bg-white p-4 rounded shadow"
-      >
-        <div className="flex items-center gap-1">
-          <label className="text-sm font-medium">Rôle :</label>
-          <select
-            className="border rounded px-2 py-1"
-            value={filters.role}
-            onChange={(e) =>
-              setFilters((f) => ({ ...f, role: e.target.value }))
-            }
-          >
-            <option value="">Tous</option>
-            {roleOptions.map((r) => (
-              <option key={r} value={r}>
-                {r}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        <div className="flex items-center gap-1">
-          <label className="text-sm font-medium">Statut :</label>
-          <select
-            className="border rounded px-2 py-1"
-            value={filters.status}
-            onChange={(e) =>
-              setFilters((f) => ({ ...f, status: e.target.value }))
-            }
-          >
-            <option value="">Tous</option>
-            {statusOptions.map((s) => (
-              <option key={s} value={s}>
-                {s}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        <button
-          className="bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700 transition"
-          type="submit"
+    <div>
+      {/* 🔹 Alertes */}
+      {alert.message && (
+        <div
+          className={`alert alert-${alert.type} alert-dismissible fade show`}
+          role="alert"
         >
-          Filtrer
-        </button>
-        <button
-          className="bg-gray-200 text-gray-700 px-3 py-1 rounded hover:bg-gray-300 transition"
-          type="button"
-          onClick={() => {
-            setFilters({ role: "", status: "" });
-            fetchData();
+          {alert.message}
+          <button
+            type="button"
+            className="btn-close"
+            onClick={() => setAlert({ type: "", message: "" })}
+          ></button>
+        </div>
+      )}
+
+      {/* 🔹 Barre de recherche */}
+      <div className="d-flex justify-content-between align-items-center mb-3">
+        <h4 className="fw-bold text-primary mb-0">
+          <i className="bi bi-people-fill me-2"></i> Utilisateurs
+        </h4>
+        <input
+          type="text"
+          className="form-control w-50 shadow-sm"
+          placeholder="🔍 Rechercher par email, nom, rôle, statut..."
+          value={search}
+          onChange={(e) => {
+            setSearch(e.target.value);
+            setCurrentPage(1);
           }}
-        >
-          Réinitialiser
-        </button>
+        />
+      </div>
+
+      {/* 🔹 Filtres */}
+      <form
+        onSubmit={(e) => {
+          e.preventDefault();
+          fetchData();
+        }}
+        className="card card-body mb-4 shadow-sm"
+      >
+        <div className="row g-3 align-items-end">
+          <div className="col-md-6">
+            <label className="form-label fw-bold">Rôle :</label>
+            <select
+              className="form-select"
+              value={filters.role}
+              onChange={(e) =>
+                setFilters((f) => ({ ...f, role: e.target.value }))
+              }
+            >
+              <option value="">Tous</option>
+              {roleOptions.map((r) => (
+                <option key={r} value={r}>
+                  {r}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className="col-md-6">
+            <label className="form-label fw-bold">Statut :</label>
+            <select
+              className="form-select"
+              value={filters.status}
+              onChange={(e) =>
+                setFilters((f) => ({ ...f, status: e.target.value }))
+              }
+            >
+              <option value="">Tous</option>
+              {statusOptions.map((s) => (
+                <option key={s} value={s}>
+                  {s}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
       </form>
 
-      {/* Table */}
+      {/* 🔹 Tableau */}
       {loading ? (
-        <div className="text-center py-6 text-gray-500">Chargement…</div>
+        <div className="text-center py-5 text-muted">Chargement…</div>
       ) : (
-        <div className="overflow-x-auto bg-white rounded-lg shadow-md">
-          <table className="min-w-full border border-gray-200 text-sm">
-            <thead className="bg-gray-100">
+        <div className="table-responsive shadow-sm rounded">
+          <table className="table table-hover align-middle mb-0">
+            <thead className="table-primary">
               <tr>
-                <th className="px-4 py-3 text-left">Connecté</th>
-                <th className="px-4 py-3 text-left">Email</th>
-                <th className="px-4 py-3 text-left">Nom</th>
-                <th className="px-4 py-3 text-left">Rôle</th>
-                <th className="px-4 py-3 text-left">Statut</th>
-                <th className="px-4 py-3 text-left">Dernier login</th>
-                <th className="px-4 py-3 text-left">Reset req.</th>
-                <th className="px-4 py-3 text-left">Actions</th>
+                <th>
+                  <i className="bi bi-circle-fill text-success me-2"></i> Connecté
+                </th>
+                <th><i className="bi bi-envelope-at me-2"></i> Email</th>
+                <th><i className="bi bi-person-badge me-2"></i> Nom</th>
+                <th><i className="bi bi-diagram-3 me-2"></i> Rôle</th>
+                <th><i className="bi bi-shield-check me-2"></i> Statut</th>
+                <th><i className="bi bi-clock-history me-2"></i> Dernier login</th>
+                <th><i className="bi bi-exclamation-circle me-2"></i> Reset req.</th>
               </tr>
             </thead>
             <tbody>
-              {rows.map((u) => (
-                <tr
-                  key={u.id}
-                  className="hover:bg-gray-50 transition-colors border-b border-gray-200"
-                >
-                  <td className="px-4 py-3">
+              {currentUsers.map((u) => (
+                <tr key={u.id}>
+                  <td>
                     <UserOnlineDot online={!!u.online} size={14} />
                   </td>
-                  <td className="px-4 py-3">{u.email}</td>
-                  <td className="px-4 py-3">
+                  <td>{u.email}</td>
+                  <td>
                     {u.firstName} {u.lastName}
                   </td>
-                  <td className="px-4 py-3">
+                  <td>
                     <select
-                      className="border rounded px-2 py-1"
+                      className="form-select form-select-sm"
                       value={u.role}
                       onChange={(e) => onRoleChange(u.id, e.target.value)}
                     >
@@ -182,9 +201,9 @@ export default function UsersTable() {
                       ))}
                     </select>
                   </td>
-                  <td className="px-4 py-3">
+                  <td>
                     <select
-                      className="border rounded px-2 py-1"
+                      className="form-select form-select-sm"
                       value={u.accountStatus}
                       onChange={(e) => onStatusChange(u.id, e.target.value)}
                     >
@@ -195,47 +214,65 @@ export default function UsersTable() {
                       ))}
                     </select>
                   </td>
-                  <td className="px-4 py-3">
+                  <td>
                     {u.last_login_at
                       ? new Date(u.last_login_at).toLocaleString()
                       : "-"}
                   </td>
-                  <td className="px-4 py-3">{u.reset_required ? "oui" : "non"}</td>
-                  <td className="px-4 py-3 flex gap-2 flex-wrap">
-                    <button
-                      className="bg-yellow-200 px-2 py-1 rounded hover:bg-yellow-300 transition"
-                      onClick={() => onResetPassword(u.id)}
+                  <td>
+                    <span
+                      className={`badge ${
+                        u.reset_required ? "bg-danger" : "bg-success"
+                      }`}
                     >
-                      Réinit. mdp
-                    </button>
-                    <button
-                      className="bg-red-200 px-2 py-1 rounded hover:bg-red-300 transition"
-                      onClick={() =>
-                        onToggleForceReset(u.id, !!u.reset_required)
-                      }
-                    >
-                      {u.reset_required ? "Retirer reset" : "Forcer reset"}
-                    </button>
-                    <button
-                      className="bg-gray-200 px-2 py-1 rounded hover:bg-gray-300 transition"
-                      onClick={() => navigator.clipboard?.writeText(u.email)}
-                    >
-                      Copier email
-                    </button>
+                      {u.reset_required ? "Oui" : "Non"}
+                    </span>
                   </td>
                 </tr>
               ))}
             </tbody>
           </table>
 
-          <div className="text-right p-3">
-            <button
-              className="bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700 transition"
-              onClick={fetchData}
-            >
-              Rafraîchir
-            </button>
-          </div>
+          {/* 🔹 Pagination Bootstrap */}
+          {totalPages > 1 && (
+            <nav className="mt-4">
+              <ul className="pagination justify-content-center">
+                <li className={`page-item ${currentPage === 1 ? "disabled" : ""}`}>
+                  <button
+                    className="page-link"
+                    onClick={() => setCurrentPage((p) => p - 1)}
+                  >
+                    ⬅ Précédent
+                  </button>
+                </li>
+                {Array.from({ length: totalPages }, (_, i) => (
+                  <li
+                    key={i}
+                    className={`page-item ${currentPage === i + 1 ? "active" : ""}`}
+                  >
+                    <button
+                      className="page-link"
+                      onClick={() => setCurrentPage(i + 1)}
+                    >
+                      {i + 1}
+                    </button>
+                  </li>
+                ))}
+                <li
+                  className={`page-item ${
+                    currentPage === totalPages ? "disabled" : ""
+                  }`}
+                >
+                  <button
+                    className="page-link"
+                    onClick={() => setCurrentPage((p) => p + 1)}
+                  >
+                    Suivant ➡
+                  </button>
+                </li>
+              </ul>
+            </nav>
+          )}
         </div>
       )}
     </div>

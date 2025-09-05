@@ -1,26 +1,28 @@
 import UsersTable from "./UsersTable";
-import Footer from "../../layout/Footer.jsx";
+import "bootstrap/dist/css/bootstrap.min.css";
 
 export default function UsersPage() {
   return (
-    <div className="min-h-screen flex flex-col bg-gray-50">
+    <div className="container-fluid min-vh-100 d-flex flex-column bg-light">
       {/* Header */}
-      <header className="bg-blue-600 text-white py-6 px-4 shadow-md">
-        <h1 className="text-2xl font-bold">Liste des Utilisateurs</h1>
-        <p className="mt-1 text-sm text-blue-100">
-          Consultez tous les utilisateurs et leurs informations importantes.
-        </p>
-      </header>
+      
 
       {/* Main Content */}
-      <main className="flex-1 p-6">
-        <div className="bg-white rounded-lg shadow-md p-6">
-          <UsersTable />
+      <main className="flex-grow-1 py-5">
+        <div className="container">
+          <div className="card shadow-lg border-0">
+            <div className="card-header bg-white border-bottom-0 d-flex justify-content-between align-items-center">
+              <h5 className="mb-0 fw-bold text-primary">📋 Tableau des Utilisateurs</h5>
+              <button className="btn btn-sm btn-success">
+                ➕ Ajouter un utilisateur
+              </button>
+            </div>
+            <div className="card-body">
+              <UsersTable />
+            </div>
+          </div>
         </div>
       </main>
-
-      {/* Footer */}
-      <Footer />
     </div>
   );
 }

@@ -1,11 +1,16 @@
-import { Outlet, NavLink } from 'react-router-dom'
-import NavBar from './NavBar'
+import { Outlet } from "react-router-dom";   // 👈 Ajoute ça
+import NavBar from "./NavBar";
 
 export default function AppLayout() {
   return (
-    <div style={{ maxWidth: 1100, margin: '0 auto', padding: 16 }}>
+    <div className="d-flex" style={{ minHeight: "100vh" }}>
+      {/* Sidebar (NavBar.jsx transformé en sidebar rétractable) */}
       <NavBar />
-      <Outlet />
+
+      {/* Contenu principal */}
+      <div className="flex-grow-1 p-4" style={{ background: "#f8f9fa" }}>
+        <Outlet />   {/* ✅ maintenant défini */}
+      </div>
     </div>
-  )
+  );
 }

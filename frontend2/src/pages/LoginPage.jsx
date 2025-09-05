@@ -14,17 +14,23 @@ export default function AuthPage() {
 
   const [loginForm, setLoginForm] = useState({ email: "", password: "" });
   const [regForm, setRegForm] = useState({
-    firstName: "",
-    lastName: "",
     email: "",
     password: "",
+    companyName: "",
+    phone_fixed: "",
+    phone_mobile: "",
+    siret: "",
+    address: "",
+    zipcode: "",
+    city: "",
+    country: "France",
   });
 
   const loginMut = useMutation({
     mutationFn: loginApi,
     onSuccess: (data) => {
       login(data.token, data.user);
-      nav("/", { replace: true });
+      nav("/app", { replace: true });
     },
   });
 
@@ -33,10 +39,9 @@ export default function AuthPage() {
     onSuccess: (data) => {
       if (data?.token) {
         login(data.token, data.user);
-        nav("/", { replace: true });
+        nav("/app", { replace: true });
       } else {
-        // si ton API renvoie juste un OK sans token
-        setMode("login");
+        setMode("login"); // si API renvoie sans token
       }
     },
   });
@@ -62,15 +67,17 @@ export default function AuthPage() {
       <aside className="auth-hero">
         <div className="brand">
           <div className="logo-dot" />
-          <h1>DentoLink Admin</h1>
+          <h1>DentoLink</h1>
           <p>Plateforme sécurisée — gérez vos commandes et vos clients.</p>
         </div>
         <ul className="bullets">
-          <li>🔐 Authentification sécurisée JWT</li>
-          <li>⚡ Rapide et fluide (React + React Query)</li>
-          <li>🧠 Expérience moderne & épurée</li>
+          <li> Authentification sécurisée JWT</li>
+          <li> Rapide et fluide (React + React Query)</li>
+          <li> Expérience moderne & épurée</li>
         </ul>
-        <div className="hero-credit">© {new Date().getFullYear()} — DentoLink</div>
+        <div className="hero-credit">
+          © {new Date().getFullYear()} — DentoLink
+        </div>
       </aside>
 
       {/* Carte d'auth */}
@@ -94,47 +101,109 @@ export default function AuthPage() {
             </button>
           </div>
 
-          {/* Titre */}
           <h2 className="title">
-            {mode === "login" ? "Bienvenue 👋" : "Créer votre compte ✨"}
+            {mode === "login" ? "Bienvenue " : "Créer votre compte "}
           </h2>
           <p className="subtitle">
             {mode === "login"
               ? "Accédez à votre tableau de bord en toute sécurité."
-              : "Renseignez vos informations pour démarrer."}
+              : "Renseignez vos informations professionnelles pour démarrer."}
           </p>
 
           {/* Formulaire */}
           <form className="form" onSubmit={onSubmit}>
             {mode === "register" && (
-              <div className="row">
+              <>
                 <div className="field">
-                  <label>Prénom</label>
+                  <label>Nom de l’entreprise / Cabinet</label>
                   <input
-                    value={regForm.firstName}
+                    value={regForm.companyName}
                     onChange={(e) =>
-                      setRegForm((f) => ({ ...f, firstName: e.target.value }))
+                      setRegForm((f) => ({ ...f, companyName: e.target.value }))
                     }
-                    placeholder="Jean"
-                    autoComplete="given-name"
+                    required
                   />
                 </div>
+
                 <div className="field">
-                  <label>Nom</label>
+                  <label>Téléphone fixe</label>
                   <input
-                    value={regForm.lastName}
+                    value={regForm.phone_fixed}
                     onChange={(e) =>
-                      setRegForm((f) => ({ ...f, lastName: e.target.value }))
+                      setRegForm((f) => ({ ...f, phone_fixed: e.target.value }))
                     }
-                    placeholder="Dupont"
-                    autoComplete="family-name"
                   />
                 </div>
-              </div>
+
+                <div className="field">
+                  <label>Téléphone mobile</label>
+                  <input
+                    value={regForm.phone_mobile}
+                    onChange={(e) =>
+                      setRegForm((f) => ({ ...f, phone_mobile: e.target.value }))
+                    }
+                  />
+                </div>
+
+                <div className="field">
+                  <label>SIRET (si disponible)</label>
+                  <input
+                    value={regForm.siret}
+                    onChange={(e) =>
+                      setRegForm((f) => ({ ...f, siret: e.target.value }))
+                    }
+                  />
+                </div>
+
+                <div className="field">
+                  <label>Adresse</label>
+                  <input
+                    value={regForm.address}
+                    onChange={(e) =>
+                      setRegForm((f) => ({ ...f, address: e.target.value }))
+                    }
+                    required
+                  />
+                </div>
+
+                <div className="row">
+                  <div className="field">
+                    <label>Code postal</label>
+                    <input
+                      value={regForm.zipcode}
+                      onChange={(e) =>
+                        setRegForm((f) => ({ ...f, zipcode: e.target.value }))
+                      }
+                      required
+                    />
+                  </div>
+                  <div className="field">
+                    <label>Ville</label>
+                    <input
+                      value={regForm.city}
+                      onChange={(e) =>
+                        setRegForm((f) => ({ ...f, city: e.target.value }))
+                      }
+                      required
+                    />
+                  </div>
+                </div>
+
+                <div className="field">
+                  <label>Pays</label>
+                  <input
+                    value={regForm.country}
+                    onChange={(e) =>
+                      setRegForm((f) => ({ ...f, country: e.target.value }))
+                    }
+                    required
+                  />
+                </div>
+              </>
             )}
 
             <div className="field">
-              <label>Email</label>
+              <label>Email professionnel</label>
               <input
                 type="email"
                 value={mode === "login" ? loginForm.email : regForm.email}
@@ -175,7 +244,6 @@ export default function AuthPage() {
               </div>
             </div>
 
-            {/* Actions */}
             <button className="cta" disabled={isLoading}>
               {isLoading
                 ? mode === "login"
@@ -189,7 +257,7 @@ export default function AuthPage() {
             {!!err && <div className="error">{err}</div>}
           </form>
 
-          {/* Pied */}
+          {/* Switch pied */}
           <div className="switch">
             {mode === "login" ? (
               <span>

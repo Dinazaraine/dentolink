@@ -1,38 +1,38 @@
 import React from "react";
 import { CheckCircle, XCircle } from "lucide-react";
+import "bootstrap/dist/css/bootstrap.min.css";
 
 export default function UserOnlineDot({ online, size = 12 }) {
   return (
-    <div className="flex items-center gap-2">
+    <div className="d-flex align-items-center gap-2">
+      {/* Pastille en ligne / hors ligne */}
       <span
-        className={`relative inline-block rounded-full ${
-          online ? "bg-green-500" : "bg-gray-400"
+        className={`rounded-circle border ${
+          online ? "bg-success border-success" : "bg-secondary border-secondary"
         }`}
         style={{
           width: `${size}px`,
           height: `${size}px`,
           minWidth: `${size}px`,
           minHeight: `${size}px`,
+          display: "inline-block",
         }}
-      >
-        {online && (
-          <span
-            className="absolute inset-0 rounded-full bg-green-400 opacity-70 animate-ping"
-            style={{ zIndex: -1 }}
-          />
-        )}
-      </span>
+      ></span>
+
+      {/* Texte état */}
       <span
-        className={`text-xs font-medium ${
-          online ? "text-green-600" : "text-gray-500"
+        className={`fw-semibold small ${
+          online ? "text-success" : "text-muted"
         }`}
       >
         {online ? "En ligne" : "Hors ligne"}
       </span>
+
+      {/* Icône état */}
       {online ? (
-        <CheckCircle size={16} className="text-green-500" />
+        <CheckCircle size={16} className="text-success" />
       ) : (
-        <XCircle size={16} className="text-gray-400" />
+        <XCircle size={16} className="text-secondary" />
       )}
     </div>
   );

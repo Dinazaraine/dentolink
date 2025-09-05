@@ -7,6 +7,9 @@ import ProductsPage from "./features/products/ProductsPage.jsx";
 import OrdersPage from "./features/orders/OrdersPage.jsx";
 import LoginPage from "./pages/LoginPage.jsx";
 import RegisterPage from "./pages/RegisterPage.jsx";
+import AdminUsersPage from "./features/admin/AdminUsersPage.jsx";
+import OrderTable from "./features/orders/OrderTable.jsx";
+import Messenger from "./features/orders/Messenger.jsx";
 
 // Admin pages
 import AdminDashboard from "./features/admin2/AdminDashboard.jsx";
@@ -20,30 +23,34 @@ import DentisteOrderList from "./features/dentiste/OrderList.jsx";
 import DentisteOrderDetail from "./features/dentiste/OrderDetail.jsx";
 import DentisteOrderFileUpload from "./features/dentiste/OrderFileUpload.jsx";
 
+// Landing page
+import LandingPage from "./pages/LandingPage.jsx";
+
 const routes = createBrowserRouter(
   [
-    // Routes publiques
+    { path: "/", element: <LandingPage /> },
     { path: "/login", element: <LoginPage /> },
     { path: "/register", element: <RegisterPage /> },
-
-    // Routes protégées
     {
       element: <ProtectedRoute />, // check token
       children: [
         {
-          path: "/",
+          path: "/app",
           element: <AppLayout />,
           children: [
             { index: true, element: <Home /> },
             { path: "clients", element: <ClientsPage /> },
             { path: "products", element: <ProductsPage /> },
             { path: "orders", element: <OrdersPage /> },
+            { path: "OrderTable", element: <OrderTable /> },
+            { path: "Messenger", element: <Messenger /> },
 
             // Admin routes
             { path: "admin", element: <AdminDashboard /> },
             { path: "admin/orders", element: <AdminOrderList /> },
             { path: "admin/orders/:id", element: <AdminOrderDetail /> },
             { path: "admin/files", element: <AdminFileActions /> },
+            { path: "AdminUsersPage", element: <AdminUsersPage /> },
 
             // Dentiste routes
             { path: "dentiste", element: <DentisteDashboard /> },

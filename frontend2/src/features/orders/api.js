@@ -1,5 +1,4 @@
-// src/features/orders/api.js
-import api from "../../lib/api"; // ✅ Import de l'instance centralisée
+import api from "../../lib/api"; // ✅ Instance centralisée d'axios
 
 /** Petit helper JSON.parse sans crash */
 const safeParseJSON = (v, fallback) => {
@@ -29,7 +28,11 @@ export const normalizeOrder = (o) => {
       o.total !== undefined && o.total !== null && !Number.isNaN(Number(o.total))
         ? Number(o.total)
         : 10.0,
-    status: o.status || "panier",
+    orderStatus: o.orderStatus || o.status || "en_attente", // ✅ normalisation
+    paymentStatus:
+      o.paymentStatus && o.paymentStatus !== "null" && o.paymentStatus !== ""
+        ? o.paymentStatus
+        : "panier", // ✅ corrigé
     paymentMethod: o.paymentMethod || null,
     transactionRef: o.transactionRef || null,
   };
@@ -60,16 +63,14 @@ export const fetchOrderById = async (id) => {
 };
 
 export const createOrder = async (payload) => {
-  const r = await api.post(`/orders`, buildFormData(payload), {
-    headers: { "Content-Type": "multipart/form-data" },
-  });
+  // ✅ pas de Content-Type ici → axios gère boundary automatiquement
+  const r = await api.post(`/orders`, buildFormData(payload));
   return normalizeOrder(r.data);
 };
 
 export const updateOrder = async (id, payload) => {
-  const r = await api.put(`/orders/${id}`, buildFormData(payload), {
-    headers: { "Content-Type": "multipart/form-data" },
-  });
+  // ✅ idem pour update
+  const r = await api.put(`/orders/${id}`, buildFormData(payload));
   return normalizeOrder(r.data);
 };
 
@@ -109,11 +110,7 @@ export const fetchMe = async () => {
 
 /** ----------- Changer uniquement le statut d’une commande ----------- */
 export const updateOrderStatus = async (id, nextStatus) => {
-  const fd = new FormData();
-  fd.append("status", nextStatus);
-  const r = await api.put(`/orders/${id}`, fd, {
-    headers: { "Content-Type": "multipart/form-data" },
-  });
+  const r = await api.put(`/orders/${id}/status`, { orderStatus: nextStatus });
   return normalizeOrder(r.data);
 };
 
@@ -129,6 +126,8 @@ export const downloadFile = async (fileNameOrPath) => {
   a.click();
   a.remove();
 };
+
+/** ----------- Mise à jour de statut par dentiste ----------- */
 export const updateOrderStatusByDentist = async (id, currentStatus) => {
   let nextStatus;
   if (currentStatus === "en_attente") {
@@ -139,12 +138,128 @@ export const updateOrderStatusByDentist = async (id, currentStatus) => {
     throw new Error("Statut non modifiable par le dentiste");
   }
 
-  const fd = new FormData();
-  fd.append("status", nextStatus);
-
-  const r = await api.put(`/orders/${id}`, fd, {
-    headers: { "Content-Type": "multipart/form-data" },
-  });
-
+  const r = await api.put(`/orders/${id}/status`, { orderStatus: nextStatus });
   return normalizeOrder(r.data);
+};
+
+/** ----------- Récupérer les fichiers d'une commande ----------- */
+export const getOrderFiles = async (orderId) => {
+  const res = await api.get(`/orders/${orderId}/files`);
+  return res.data || []; // ✅ tableau de fichiers
+};
+
+/** ----------- Générer / Télécharger une facture PDF ----------- */
+export const generateInvoice = async (orderId) => {
+  try {
+    const res = await api.get(`/orders/${orderId}/invoice`, {
+      responseType: "blob", // ⚠️ nécessaire pour recevoir un PDF
+    });
+
+    // Créer un lien de téléchargement
+    const url = window.URL.createObjectURL(new Blob([res.data], { type: "application/pdf" }));
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `facture_commande_${orderId}.pdf`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+  } catch (err) {
+    console.error("Erreur génération facture:", err?.response?.data || err?.message);
+    throw new Error("Impossible de générer la facture PDF.");
+  }
+};
+
+/** ----------- Messagerie ----------- */
+
+// Envoyer un message
+export const sendMessage = async (to, message) => {
+  if (!to || !message?.trim()) {
+    throw new Error("Destinataire ou message manquant");
+  }
+
+  const r = await api.post(`/orders/messages`, { to, message });
+  return r.data; // { id, senderId, receiverId, message, createdAt, ... }
+};
+
+// Récupérer l’historique avec un utilisateur
+export const fetchMessagesWithUser = async (userId) => {
+  if (!userId) return [];
+  const r = await api.get(`/orders/messages/${userId}`);
+  return Array.isArray(r.data) ? r.data : [];
+};
+
+// Récupérer la liste des conversations (dernier message par utilisateur)
+export const fetchConversations = async () => {
+  const r = await api.get(`/orders/conversations`);
+  return Array.isArray(r.data) ? r.data : [];
+};
+
+/** ----------- Notifications ----------- */
+
+// Récupérer mes notifications (messages non lus)
+export const fetchNotifications = async () => {
+  try {
+    const r = await api.get(`/orders/notifications`);
+    return Array.isArray(r.data) ? r.data : [];
+  } catch (err) {
+    console.error("Erreur lors du chargement des notifications:", err);
+    return [];
+  }
+};
+
+// Marquer une notification comme lue
+export const markNotificationAsRead = async (notificationId) => {
+  if (!notificationId) return false;
+  try {
+    await api.patch(`/orders/notifications/${notificationId}/read`);
+    return true;
+  } catch (err) {
+    console.error("Erreur lors de la mise à jour de la notification:", err);
+    return false;
+  }
+};
+/** ----------- Paiement multiple ----------- */
+export const payMultipleOrders = async (orderIds = []) => {
+  if (!Array.isArray(orderIds) || orderIds.length === 0) {
+    throw new Error("Aucune commande sélectionnée");
+  }
+
+  try {
+    const { data } = await api.post(`/orders/pay-multiple`, { orderIds });
+
+    if (!data?.url) {
+      throw new Error("Erreur création session Stripe");
+    }
+
+    return data; // { url: "https://checkout.stripe.com/..." }
+  } catch (err) {
+    console.error("Erreur API payMultipleOrders:", err?.response?.data || err?.message);
+    throw new Error(err?.response?.data?.error || "Impossible de créer la session Stripe multiple.");
+  }
+};
+
+/** ----------- Facture groupée ----------- */
+export const generateInvoiceMultiple = async (orderIds = []) => {
+  if (!Array.isArray(orderIds) || orderIds.length === 0) {
+    throw new Error("Aucune commande sélectionnée");
+  }
+
+  try {
+    const res = await api.get(`/orders/invoice-multiple`, {
+      params: { ids: orderIds.join(",") },
+      responseType: "blob", // ✅ recevoir un PDF
+    });
+
+    // Créer un lien de téléchargement
+    const url = window.URL.createObjectURL(new Blob([res.data], { type: "application/pdf" }));
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `facture_multiple.pdf`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+  } catch (err) {
+    console.error("Erreur génération facture multiple:", err?.response?.data || err?.message);
+    throw new Error("Impossible de générer la facture multiple.");
+  }
 };

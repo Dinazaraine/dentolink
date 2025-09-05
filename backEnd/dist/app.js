@@ -5,6 +5,8 @@ const dotenv = require("dotenv");
 const cors = require("cors");
 const helmet = require("helmet");
 const path = require("path");
+const http = require("http"); // ✅ nécessaire pour socket.io
+const { Server } = require("socket.io"); // ✅ socket.io
 
 dotenv.config();
 
@@ -15,14 +17,57 @@ const orderProductRoutes = require("./routes/orderProductRoutes");
 const authRoutes = require("./routes/authRoutes");
 const usersRoutes = require("./routes/usersRoutes");
 
+const orderController = require("./controllers/orderController");
 const { pool } = require("./config/database");
 
 let syncModels = null;
 try {
   ({ syncModels } = require("./models"));
-} catch (_) {}
+} catch {
+  console.warn("⚠️ Aucun models trouvé pour syncModels (ignorer si normal).");
+}
 
 const app = express();
+const server = http.createServer(app);
+
+const io = new Server(server, {
+  cors: {
+    origin: "http://localhost:5173", // ton frontend
+    methods: ["GET", "POST"],
+    credentials: true, // ⚠️ obligatoire si tu utilises withCredentials
+  },
+});
+
+/* --------------------------- Gestion Socket.IO --------------------------- */
+const onlineUsers = new Map();
+
+io.on("connection", (socket) => {
+  console.log("🔌 Un utilisateur est connecté :", socket.id);
+
+  socket.on("user_online", (userId) => {
+    onlineUsers.set(socket.id, userId);
+    io.emit("online_users", Array.from(onlineUsers.values()));
+  });
+
+  socket.on("send_message", (data) => {
+    console.log("💬 Nouveau message :", data);
+    // envoi au destinataire spécifique si socket.id connu
+    for (let [sockId, uid] of onlineUsers.entries()) {
+      if (uid === data.to) {
+        io.to(sockId).emit("receive_message", {
+          from: data.from,
+          message: data.message,
+        });
+      }
+    }
+  });
+
+  socket.on("disconnect", () => {
+    console.log("❌ Déconnecté :", socket.id);
+    onlineUsers.delete(socket.id);
+    io.emit("online_users", Array.from(onlineUsers.values()));
+  });
+});
 
 /* --------------------------- CORS --------------------------- */
 const allowedOrigins = (process.env.CORS_ORIGIN ?? "http://localhost:5173")
@@ -33,7 +78,7 @@ app.use(
   cors({
     origin: allowedOrigins,
     methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization"], // ajoute "X-Requested-With" si tu l'utilises côté front
+    allowedHeaders: ["Content-Type", "Authorization"],
     credentials: true,
   })
 );
@@ -41,6 +86,7 @@ app.use(
 /* ------------------ Sécurité (Stripe CSP inclus) ------------------ */
 app.use(
   helmet({
+    crossOriginResourcePolicy: false,
     contentSecurityPolicy: {
       directives: {
         defaultSrc: ["'self'"],
@@ -54,16 +100,21 @@ app.use(
   })
 );
 
-/* -------- Webhook Stripe (AVANT les parsers; une seule fois !) -------- */
+/* -------- Webhook Stripe (AVANT body parsers !) -------- */
 app.post(
   "/api/orders/webhook",
   express.raw({ type: "application/json" }),
-  require("./controllers/orderController").handleStripeWebhook
+  orderController.handleStripeWebhook
 );
 
-/* ------------------ Body parsers globaux (après webhook) ------------------ */
+/* ------------------ Body parsers globaux ------------------ */
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+/* ------------------- Fichiers statiques ------------------- */
+const uploadDir = path.join(__dirname, "uploads");
+app.use("/uploads", express.static(uploadDir));
+console.log("📂 Uploads servis depuis :", uploadDir);
 
 /* ------------------------------ Healthcheck ------------------------------ */
 app.get("/health", (_req, res) => {
@@ -77,31 +128,6 @@ app.use("/api/orders", orderRoutes);
 app.use("/api/order-products", orderProductRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/users", usersRoutes);
-app.use("/uploads", express.static(path.join(__dirname, "uploads")));/* ---------------------- (Optionnel) PaymentIntent util --------------------- */
-const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY, { apiVersion: "2024-06-20" });
-const ZERO_DECIMAL = new Set(["JPY", "KRW", "VND", "MGA"]);
-function toStripeAmount(amount, currency) {
-  const c = String(currency || "USD").toUpperCase();
-  return ZERO_DECIMAL.has(c) ? Math.round(Number(amount)) : Math.round(Number(amount) * 100);
-}
-
-app.post("/api/payment/create-intent", async (req, res) => {
-  try {
-    const { amount, currency = "usd" } = req.body;
-    if (!amount || Number(amount) <= 0) {
-      return res.status(400).json({ error: "Montant invalide" });
-    }
-    const paymentIntent = await stripe.paymentIntents.create({
-      amount: toStripeAmount(amount, currency),
-      currency,
-      automatic_payment_methods: { enabled: true },
-    });
-    res.json({ clientSecret: paymentIntent.client_secret });
-  } catch (error) {
-    console.error("❌ Erreur création PaymentIntent:", error.message);
-    res.status(500).json({ error: error.message });
-  }
-});
 
 /* ----------------------------- 404 handler ----------------------------- */
 app.use((_req, res) => res.status(404).json({ error: "Not Found" }));
@@ -110,14 +136,14 @@ app.use((_req, res) => res.status(404).json({ error: "Not Found" }));
 const PORT = Number(process.env.PORT) || 3000;
 
 function startServer() {
-  app.listen(PORT, () => {
+  server.listen(PORT, () => { // ✅ server.listen au lieu de app.listen
     console.log(`🚀 Server running on http://localhost:${PORT}`);
     console.log(`🌐 CORS allowed origins: ${allowedOrigins.join(", ")}`);
+    console.log("⚡ Socket.IO prêt !");
   });
 }
 
 function bootstrap() {
-  const { pool } = require("./config/database");
   pool.getConnection((err, conn) => {
     if (err) {
       console.error("❌ Échec de connexion MySQL :", err.message);
@@ -154,7 +180,11 @@ function bootstrap() {
 bootstrap();
 
 /* ---------------------------- Gestion erreurs ---------------------------- */
-process.on("unhandledRejection", (reason) => console.error("UNHANDLED REJECTION:", reason));
-process.on("uncaughtException", (err) => console.error("UNCAUGHT EXCEPTION:", err));
+process.on("unhandledRejection", (reason) =>
+  console.error("UNHANDLED REJECTION:", reason)
+);
+process.on("uncaughtException", (err) =>
+  console.error("UNCAUGHT EXCEPTION:", err)
+);
 
-module.exports = app;
+module.exports = { app, io }; // ✅ on exporte aussi io si besoin ailleurs

@@ -2,16 +2,10 @@ import React, { useState, useRef } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { createOrder } from "./api.js";
 import DentalChart from "../../components/DentalChart.jsx";
+import "bootstrap/dist/css/bootstrap.min.css";
+import "bootstrap-icons/font/bootstrap-icons.css";
 
-const ACCEPTED_EXT = [
-  "image/png",
-  "image/jpeg",
-  "image/jpg",
-  "image/webp",
-  ".stl",
-  ".obj",
-  ".ply",
-];
+const ACCEPTED_EXT = ["image/png", "image/jpeg", "image/jpg", "image/webp", ".stl", ".obj", ".ply"];
 const MAX_PER_FILE_MB = 50;
 const MAX_FILES = 10;
 
@@ -23,14 +17,12 @@ export default function OrderForm({ onCreated }) {
     patient_name: "",
     patient_sex: "",
     patient_age: "",
-    work_type: "",
-    sub_type: "",
     model: "",
     remark: "",
     files: [],
+  works: [{ work_type: "", sub_type: "", upper_teeth: [], lower_teeth: [] }],
   });
 
-  const [selectedTeeth, setSelectedTeeth] = useState([]);
   const [errMsg, setErrMsg] = useState("");
 
   const createMut = useMutation({
@@ -44,40 +36,31 @@ export default function OrderForm({ onCreated }) {
           patient_name: "",
           patient_sex: "",
           patient_age: "",
-          work_type: "",
-          sub_type: "",
           model: "",
           remark: "",
           files: [],
+            works: [{ work_type: "", sub_type: "", upper_teeth: [], lower_teeth: [] }],
+
         });
         if (fileInputRef.current) fileInputRef.current.value = "";
-        setSelectedTeeth([]);
         setTimeout(() => (notified.current = false), 0);
       }
     },
     onError: (err) => {
-      setErrMsg(
-        String(err?.error || err?.response?.data?.error || err?.message || err)
-      );
+      setErrMsg(String(err?.error || err?.response?.data?.error || err?.message || err));
     },
   });
 
+  // Gestion champs patient
   function handleChange(e) {
     const { name, value } = e.target;
     setForm((f) => ({ ...f, [name]: value }));
   }
 
+  // Fichiers
   function handleFilesSelected(e) {
     let next = Array.from(e.target.files || []);
-    next = next.filter((file) => {
-      const okType =
-        ACCEPTED_EXT.includes(file.type) ||
-        ACCEPTED_EXT.some((ext) =>
-          file.name?.toLowerCase().endsWith(ext)
-        );
-      const okSize = file.size <= MAX_PER_FILE_MB * 1024 * 1024;
-      return okType && okSize;
-    });
+    next = next.filter((file) => file.size <= MAX_PER_FILE_MB * 1024 * 1024);
     if (next.length > MAX_FILES) next = next.slice(0, MAX_FILES);
     setForm((f) => ({ ...f, files: next }));
   }
@@ -90,149 +73,342 @@ export default function OrderForm({ onCreated }) {
     });
   }
 
-  function onSubmit(e) {
-    e.preventDefault();
-    if (!form.patient_name || !form.patient_sex || !form.patient_age || !form.work_type) {
-      setErrMsg("Veuillez remplir les champs obligatoires.");
-      return;
+  // Travaux
+  function addWork() {
+    setForm((f) => ({
+      ...f,
+works: [...f.works, { work_type: "", sub_type: "", upper_teeth: [], lower_teeth: [] }],
+    }));
+  }
+
+  function removeWork(i) {
+    setForm((f) => {
+      const works = [...f.works];
+      works.splice(i, 1);
+      return { ...f, works };
+    });
+  }
+
+function handleWorkChange(i, name, value) {
+  setForm((f) => {
+    const works = [...f.works];
+
+    // Normaliser upper_teeth et lower_teeth
+    if ((name === "upper_teeth" || name === "lower_teeth") && !Array.isArray(value)) {
+      value = [];
     }
 
-    const upper = selectedTeeth.filter((n) => n >= 11 && n <= 28);
-    const lower = selectedTeeth.filter((n) => n >= 31 && n <= 48);
+    // Compatibilité rétro avec teeth (on peut l'ignorer ou le mapper vers upper)
+    if (name === "teeth") {
+      value = Array.isArray(value) ? value : [];
+      works[i]["upper_teeth"] = value; // tu choisis si tu veux copier dans upper_teeth
+    } else {
+      works[i][name] = value;
+    }
+
+    return { ...f, works };
+  });
+}
+
+
+  // Sous-types
+  function renderSubType(workType, index, currentValue) {
+    switch (workType) {
+      case "Conjointe":
+        return (
+          <select
+            className="form-select"
+            value={currentValue}
+            onChange={(e) => handleWorkChange(index, "sub_type", e.target.value)}
+          >
+            <option value="">Sélectionner un détail</option>
+            <option value="Inlay core">Inlay core</option>
+            <option value="Ilay onlay">Ilay onlay</option>
+            <option value="Facette dentaire">Facette dentaire</option>
+            <option value="Chape pour couronne">Chape pour couronne</option>
+            <option value="Couronne">Couronne</option>
+          </select>
+        );
+      case "Amovible":
+        return (
+          <select
+            className="form-select"
+            value={currentValue}
+            onChange={(e) => handleWorkChange(index, "sub_type", e.target.value)}
+          >
+            <option value="">Sélectionner un détail</option>
+            <option value="Sellite">Sellite</option>
+          </select>
+        );
+      case "Gouttières":
+        return (
+          <select
+            className="form-select"
+            value={currentValue}
+            onChange={(e) => handleWorkChange(index, "sub_type", e.target.value)}
+          >
+            <option value="">Sélectionner un détail</option>
+            <option value="Gouttière alligneur">Gouttière alligneur</option>
+          </select>
+        );
+      case "Implant":
+        return (
+          <select
+            className="form-select"
+            value={currentValue}
+            onChange={(e) => handleWorkChange(index, "sub_type", e.target.value)}
+          >
+            <option value="">Sélectionner un détail</option>
+            <option value="Couronne sur Implant">Couronne sur Implant</option>
+            <option value="Planification implantaire / Par dents">Planification implantaire / Par dents</option>
+            <option value="Guide Chirugicale">Guide Chirugicale</option>
+            <option value="Piler personnalisée">Piler personnalisée</option>
+            <option value="All on 4/6 12dent avec fausse gencive">All on 4/6 12dent avec fausse gencive</option>
+          </select>
+        );
+      default:
+        return (
+          <select className="form-select" disabled>
+            <option>Choisir un type d'abord</option>
+          </select>
+        );
+    }
+  }
+
+  // Envoi
+  function onSubmit(e) {
+    e.preventDefault();
+    if (!form.patient_name || !form.patient_sex || !form.patient_age) {
+      setErrMsg("⚠️ Veuillez remplir les champs obligatoires.");
+      return;
+    }
+    if (form.works.length === 0) {
+      setErrMsg("⚠️ Veuillez ajouter au moins un travail.");
+      return;
+    }
 
     const payload = {
       patient_name: form.patient_name,
       patient_sex: form.patient_sex,
       patient_age: Number(form.patient_age),
-      work_type: form.work_type,
-      sub_type: form.sub_type || "",
       model: form.model || "",
       remark: form.remark || "",
-      upper_teeth: upper,
-      lower_teeth: lower,
       files: form.files,
+      works: form.works,
     };
 
+    console.log("📦 Payload brut:", payload);
     createMut.mutate(payload);
   }
 
-  function renderSubType() {
-    switch (form.work_type) {
-      case "Conjointe":
-        return (
-          <select name="sub_type" value={form.sub_type} onChange={handleChange}>
-            <option value="">Sélectionner un détail</option>
-            <option value="COURONNE OU BRIDGE">COURONNE OU BRIDGE</option>
-            <option value="inlay onlay">inlay onlay</option>
-            <option value="Chape de couronne">Chape de couronne</option>
-            <option value="facette">facette</option>
-            <option value="inlay core">inlay core</option>
-          </select>
-        );
-      case "Adjointe":
-        return (
-          <select name="sub_type" value={form.sub_type} onChange={handleChange}>
-            <option value="">Sélectionner un détail</option>
-            <option value="PLAQUE STELLITE">PLAQUE STELLITE</option>
-            <option value="PAP CLASSIQUE">PAP CLASSIQUE</option>
-            <option value="Stellite+montage dent">Stellite+montage dent</option>
-          </select>
-        );
-      case "Implant":
-        return (
-          <select name="sub_type" value={form.sub_type} onChange={handleChange}>
-            <option value="">Sélectionner un détail</option>
-            <option value="couronne sur implant">couronne sur implant</option>
-            <option value="pilier personnalisé">pilier personnalisé</option>
-            <option value="all on x">all on x</option>
-          </select>
-        );
-      default:
-        return null;
-    }
-  }
-
   return (
-    <form onSubmit={onSubmit} style={{ display: "grid", gap: 12, maxWidth: 700 }}>
-      <h3>Nouvelle commande</h3>
+    <>
+      <form
+        onSubmit={onSubmit}
+        className="card shadow-lg p-4 bg-light border-0"
+        style={{ maxWidth: 800, margin: "0 auto" }}
+      >
+        <h3 className="mb-4 text-primary">
+          <i className="bi bi-journal-plus me-2"></i> Nouvelle commande
+        </h3>
 
-      <input
-        name="patient_name"
-        placeholder="Nom du patient"
-        value={form.patient_name}
-        onChange={handleChange}
-        required
-      />
+        {/* Patient */}
+        <div className="mb-3 input-group">
+          <span className="input-group-text">
+            <i className="bi bi-person"></i>
+          </span>
+          <input
+            className="form-control"
+            name="patient_name"
+            placeholder="Nom du patient"
+            value={form.patient_name}
+            onChange={handleChange}
+            required
+          />
+        </div>
 
-      <select name="patient_sex" value={form.patient_sex} onChange={handleChange} required>
-        <option value="">Sexe</option>
-        <option value="Homme">Homme</option>
-        <option value="Femme">Femme</option>
-      </select>
+        <div className="row mb-3">
+          <div className="col input-group">
+            <span className="input-group-text">
+              <i className="bi bi-gender-ambiguous"></i>
+            </span>
+            <select
+              className="form-select"
+              name="patient_sex"
+              value={form.patient_sex}
+              onChange={handleChange}
+              required
+            >
+              <option value="">Sexe</option>
+              <option value="Homme">Homme</option>
+              <option value="Femme">Femme</option>
+            </select>
+          </div>
+          <div className="col input-group">
+            <span className="input-group-text">
+              <i className="bi bi-cake2"></i>
+            </span>
+            <input
+              type="number"
+              className="form-control"
+              name="patient_age"
+              placeholder="Âge"
+              value={form.patient_age}
+              onChange={handleChange}
+              required
+            />
+          </div>
+        </div>
 
-      <input
-        type="number"
-        name="patient_age"
-        placeholder="Âge"
-        value={form.patient_age}
-        onChange={handleChange}
-        required
-      />
+        {/* Travaux */}
+        <h5 className="mb-2 text-secondary">
+          <i className="bi bi-tools me-2"></i> Travaux demandés
+        </h5>
 
-      <div style={{ display: "flex", gap: 10 }}>
-        <select name="work_type" value={form.work_type} onChange={handleChange} required>
-          <option value="">Type de travail</option>
-          <option value="Conjointe">Conjointe</option>
-          <option value="Adjointe">Adjointe</option>
-          <option value="Implant">Implant</option>
-          <option value="Gouttière">Gouttière</option>
-          <option value="Planification Implantaire">Planification Implantaire</option>
-          <option value="Analyse aligneur">Analyse aligneur</option>
-        </select>
-        {renderSubType()}
-      </div>
+        {form.works.map((w, i) => (
+          <div key={i} className="card p-3 mb-3 border">
+            <div className="row mb-2">
+              <div className="col">
+                <select
+                  className="form-select"
+                  value={w.work_type}
+                  onChange={(e) => handleWorkChange(i, "work_type", e.target.value)}
+                  required
+                >
+                  <option value="">Type de travail</option>
+                  <option value="Conjointe">Conjointe</option>
+                  <option value="Amovible">Amovible</option>
+                  <option value="Gouttières">Gouttières</option>
+                  <option value="Implant">Implant</option>
+                </select>
+              </div>
+              <div className="col">{renderSubType(w.work_type, i, w.sub_type)}</div>
+              <div className="col-auto">
+                {i > 0 && (
+                  <button type="button" className="btn btn-outline-danger" onClick={() => removeWork(i)}>
+                    ✖
+                  </button>
+                )}
+              </div>
+            </div>
 
-      <select name="model" value={form.model} onChange={handleChange}>
-        <option value="">Modèle de travail</option>
-        <option value="1 arcade">1 arcade</option>
-        <option value="Haut et bas">Haut et bas</option>
-      </select>
+            <h6 className="mt-2">Dents concernées</h6>
+            <DentalChart
+  selectedUpper={Array.isArray(w.upper_teeth) ? w.upper_teeth : []}
+  selectedLower={Array.isArray(w.lower_teeth) ? w.lower_teeth : []}
+  setSelectedUpper={(teeth) => handleWorkChange(i, "upper_teeth", teeth)}
+  setSelectedLower={(teeth) => handleWorkChange(i, "lower_teeth", teeth)}
+/>
 
-      <DentalChart selectedTeeth={selectedTeeth} setSelectedTeeth={setSelectedTeeth} />
+          </div>
+        ))}
 
-      <textarea
-        name="remark"
-        placeholder="Remarques"
-        value={form.remark}
-        onChange={handleChange}
-      />
+        <button type="button" className="btn btn-outline-primary mb-3" onClick={addWork}>
+          ➕ Ajouter un travail
+        </button>
 
-      <div>
-        <label>Fichiers (STL / Images)</label>
-        <input
-          ref={fileInputRef}
-          type="file"
-          multiple
-          accept=".stl,.obj,.ply,image/png,image/jpeg,image/jpg,image/webp"
-          onChange={handleFilesSelected}
-        />
-        {form.files.length > 0 && (
+        {/* Modèle */}
+        <div className="mb-3 input-group">
+          <span className="input-group-text">
+            <i className="bi bi-layers"></i>
+          </span>
+          <select className="form-select" name="model" value={form.model} onChange={handleChange}>
+            <option value="">Modèle de travail</option>
+            <option value="1 arcade">1 arcade</option>
+            <option value="Haut et bas">Haut et bas</option>
+          </select>
+        </div>
+
+        {/* Remarques */}
+        <div className="mb-3 input-group">
+          <span className="input-group-text">
+            <i className="bi bi-chat-dots"></i>
+          </span>
+          <textarea
+            className="form-control"
+            name="remark"
+            placeholder="Remarques"
+            value={form.remark}
+            onChange={handleChange}
+          />
+        </div>
+
+        {/* Fichiers */}
+        <div className="mb-3">
+          <label className="form-label">
+            <i className="bi bi-paperclip me-2"></i> Fichiers (STL / Images)
+          </label>
+          <input className="form-control" ref={fileInputRef} type="file" multiple onChange={handleFilesSelected} />
+
+          {form.files.length > 0 && (
+            <ul className="list-group mt-2">
+              {form.files.map((f, i) => (
+                <li key={i} className="list-group-item d-flex justify-content-between align-items-center">
+                  <i className="bi bi-file-earmark-text me-2 text-primary"></i>
+                  {f.name} ({(f.size / (1024 * 1024)).toFixed(2)} Mo)
+                  <button type="button" className="btn btn-sm btn-outline-danger" onClick={() => removeFileAt(i)}>
+                    <i className="bi bi-trash"></i> Retirer
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+
+        {/* Bouton */}
+        <div className="d-grid">
+          <button className="btn btn-primary" disabled={createMut.isPending}>
+            {createMut.isPending ? (
+              <>
+                <i className="bi bi-hourglass-split me-2"></i> Envoi…
+              </>
+            ) : (
+              <>
+                <i className="bi bi-check-circle me-2"></i> Créer la commande
+              </>
+            )}
+          </button>
+        </div>
+
+        {!!errMsg && (
+          <div className="alert alert-danger mt-3" role="alert">
+            <i className="bi bi-exclamation-octagon-fill me-2"></i>
+            {errMsg}
+          </div>
+        )}
+      </form>
+
+      {/* 🔎 Aperçu des infos saisies */}
+      <div className="card mt-4 shadow-sm">
+        <div className="card-body">
+          <h5 className="text-secondary mb-3">
+            <i className="bi bi-eye me-2"></i> Aperçu de la commande
+          </h5>
+          <p><strong>Nom patient :</strong> {form.patient_name || "-"}</p>
+          <p><strong>Sexe :</strong> {form.patient_sex || "-"}</p>
+          <p><strong>Âge :</strong> {form.patient_age || "-"}</p>
+          <p><strong>Modèle :</strong> {form.model || "-"}</p>
+          <p><strong>Remarques :</strong> {form.remark || "-"}</p>
+
+          <h6>Travaux :</h6>
           <ul>
-            {form.files.map((f, i) => (
+            {form.works.map((w, i) => (
               <li key={i}>
-                {f.name} ({(f.size / (1024 * 1024)).toFixed(2)} Mo)
-                <button type="button" onClick={() => removeFileAt(i)}>Retirer</button>
+{w.work_type || "?"} – {w.sub_type || "?"} – 
+Haut: {Array.isArray(w.upper_teeth) && w.upper_teeth.length > 0 ? w.upper_teeth.join(", ") : "aucune"} | 
+Bas: {Array.isArray(w.lower_teeth) && w.lower_teeth.length > 0 ? w.lower_teeth.join(", ") : "aucune"}
               </li>
             ))}
           </ul>
-        )}
+
+          <h6>Fichiers :</h6>
+          <ul>
+            {form.files.map((f, i) => (
+              <li key={i}>{f.name} ({(f.size / (1024 * 1024)).toFixed(2)} Mo)</li>
+            ))}
+          </ul>
+        </div>
       </div>
-
-      <button disabled={createMut.isPending}>
-        {createMut.isPending ? "Envoi…" : "Créer la commande"}
-      </button>
-
-      {!!errMsg && <div style={{ color: "crimson" }}>{errMsg}</div>}
-    </form>
+    </>
   );
 }

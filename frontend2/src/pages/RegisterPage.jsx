@@ -8,15 +8,27 @@ import { Link, useNavigate } from "react-router-dom";
 export default function RegisterPage() {
   const nav = useNavigate();
   const { login } = useAuth();
-  const [form, setForm] = useState({ email: "", password: "", firstName: "", lastName: "" });
+
+  const [form, setForm] = useState({
+    email: "",
+    password: "",
+    companyName: "",
+    phone_fixed: "",
+    phone_mobile: "",
+    siret: "",
+    address: "",
+    zipcode: "",
+    city: "",
+    country: "France",
+  });
 
   const mut = useMutation({
     mutationFn: registerApi,
     onSuccess: (data) => {
-      // soit tu connectes directement :
+      // soit tu connectes directement si API renvoie token
       if (data.token) {
         login(data.token, data.user);
-        nav("/", { replace: true });
+        nav("/app", { replace: true });
       } else {
         nav("/login", { replace: true });
       }
@@ -27,21 +39,95 @@ export default function RegisterPage() {
     <div className="auth-container">
       <h2>Inscription</h2>
       <form
-        onSubmit={(e) => { e.preventDefault(); mut.mutate(form); }}
+        onSubmit={(e) => {
+          e.preventDefault();
+          mut.mutate(form);
+        }}
         className="auth-form"
       >
-        <label>Prénom</label>
-        <input value={form.firstName} onChange={e=>setForm(f=>({...f,firstName:e.target.value}))} />
-        <label>Nom</label>
-        <input value={form.lastName} onChange={e=>setForm(f=>({...f,lastName:e.target.value}))} />
-        <label>Email</label>
-        <input type="email" value={form.email} onChange={e=>setForm(f=>({...f,email:e.target.value}))} required />
+        <label>Nom de l’entreprise / Cabinet</label>
+        <input
+          value={form.companyName}
+          onChange={(e) => setForm(f => ({ ...f, companyName: e.target.value }))}
+          required
+        />
+
+        <label>Email professionnel</label>
+        <input
+          type="email"
+          value={form.email}
+          onChange={(e) => setForm(f => ({ ...f, email: e.target.value }))}
+          required
+        />
+
         <label>Mot de passe</label>
-        <input type="password" value={form.password} onChange={e=>setForm(f=>({...f,password:e.target.value}))} required />
-        <button disabled={mut.isPending}>{mut.isPending ? "Création…" : "Créer le compte"}</button>
-        {mut.isError && <div className="error">{String(mut.error.message || mut.error)}</div>}
+        <input
+          type="password"
+          value={form.password}
+          onChange={(e) => setForm(f => ({ ...f, password: e.target.value }))}
+          required
+        />
+
+        <label>Téléphone fixe</label>
+        <input
+          value={form.phone_fixed}
+          onChange={(e) => setForm(f => ({ ...f, phone_fixed: e.target.value }))}
+        />
+
+        <label>Téléphone mobile</label>
+        <input
+          value={form.phone_mobile}
+          onChange={(e) => setForm(f => ({ ...f, phone_mobile: e.target.value }))}
+        />
+
+        <label>SIRET (si disponible)</label>
+        <input
+          value={form.siret}
+          onChange={(e) => setForm(f => ({ ...f, siret: e.target.value }))}
+        />
+
+        <label>Adresse complète</label>
+        <input
+          value={form.address}
+          onChange={(e) => setForm(f => ({ ...f, address: e.target.value }))}
+          required
+        />
+
+        <label>Code postal</label>
+        <input
+          value={form.zipcode}
+          onChange={(e) => setForm(f => ({ ...f, zipcode: e.target.value }))}
+          required
+        />
+
+        <label>Ville</label>
+        <input
+          value={form.city}
+          onChange={(e) => setForm(f => ({ ...f, city: e.target.value }))}
+          required
+        />
+
+        <label>Pays</label>
+        <input
+          value={form.country}
+          onChange={(e) => setForm(f => ({ ...f, country: e.target.value }))}
+          required
+        />
+
+        <button disabled={mut.isPending}>
+          {mut.isPending ? "Création…" : "Créer le compte"}
+        </button>
+
+        {mut.isError && (
+          <div className="error">
+            {String(mut.error.message || mut.error)}
+          </div>
+        )}
       </form>
-      <p className="muted">Déjà inscrit ? <Link to="/login">Se connecter</Link></p>
+
+      <p className="muted">
+        Déjà inscrit ? <Link to="/login">Se connecter</Link>
+      </p>
     </div>
   );
 }

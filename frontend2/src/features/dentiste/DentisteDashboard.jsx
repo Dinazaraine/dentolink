@@ -1,8 +1,13 @@
 import { useEffect, useState } from "react";
+import {
+  PieChart, Pie, Cell, Tooltip, ResponsiveContainer,
+  BarChart, Bar, XAxis, YAxis, CartesianGrid,
+  LineChart, Line, RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Legend
+} from "recharts";
 import { getOrdersForDentist, updateOrderStatus, uploadDentistFiles } from "./dentisteAPI";
-import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid } from "recharts";
+import "bootstrap/dist/css/bootstrap.min.css";
 
-const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042"];
+const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042", "#AA336A", "#33AA99"];
 
 export default function DentisteDashboard() {
   const [orders, setOrders] = useState([]);
@@ -18,31 +23,19 @@ export default function DentisteDashboard() {
     fetchOrders();
   }, []);
 
-  const handleStatusChange = async (orderId, status) => {
-    await updateOrderStatus(orderId, status);
-    setOrders((prev) =>
-      prev.map((o) => (o.id === orderId ? { ...o, status } : o))
-    );
-  };
+  if (loading) return <div className="text-center my-5">⏳ Chargement du tableau de bord...</div>;
 
-  const handleFileUpload = async (orderId, files) => {
-    await uploadDentistFiles(orderId, files);
-    // rafraîchir les fichiers si nécessaire
-  };
-
-  if (loading) return <div>Chargement du tableau de bord...</div>;
-
-  // Statistiques rapides
+  // ✅ Stats rapides
   const totalOrders = orders.length;
   const pendingOrders = orders.filter(o => o.status === "en_attente").length;
   const completedOrders = orders.filter(o => o.status === "paye").length;
   const filesToUpload = orders.filter(o => !o.file_paths || o.file_paths === "[]").length;
 
-  // Données graphiques
+  // ✅ Data Recharts
   const statusData = [
     { name: "En attente", value: pendingOrders },
     { name: "Terminées", value: completedOrders },
-    { name: "Autres", value: totalOrders - pendingOrders - completedOrders }
+    { name: "Autres", value: totalOrders - pendingOrders - completedOrders },
   ];
 
   const workTypeData = Object.entries(
@@ -53,31 +46,37 @@ export default function DentisteDashboard() {
     }, {})
   ).map(([type, value]) => ({ type, value }));
 
-  return (
-    <div style={{ padding: 20 }}>
-      <h1>Tableau de bord Dentiste</h1>
+  const subTypeData = Object.entries(
+    orders.reduce((acc, o) => {
+      const sub = o.sub_type || "Autre";
+      acc[sub] = (acc[sub] || 0) + 1;
+      return acc;
+    }, {})
+  ).map(([sub, value]) => ({ sub, value }));
 
-      {/* Cartes statistiques */}
-      <div style={{ display: "flex", gap: "20px", marginBottom: "30px" }}>
-        <div style={{ flex: 1, padding: 20, border: "1px solid #ccc", borderRadius: 10, background: "#f0f8ff" }}>
-          <h2>Total commandes</h2>
-          <p style={{ fontSize: "2rem", fontWeight: "bold" }}>{totalOrders}</p>
-        </div>
-        <div style={{ flex: 1, padding: 20, border: "1px solid #ccc", borderRadius: 10, background: "#fef9f0" }}>
-          <h2>En attente</h2>
-          <p style={{ fontSize: "2rem", fontWeight: "bold" }}>{pendingOrders}</p>
-        </div>
-        <div style={{ flex: 1, padding: 20, border: "1px solid #ccc", borderRadius: 10, background: "#f0fff4" }}>
-          <h2>Fichiers à uploader</h2>
-          <p style={{ fontSize: "2rem", fontWeight: "bold" }}>{filesToUpload}</p>
-        </div>
+  const ordersByDate = Object.entries(
+    orders.reduce((acc, o) => {
+      const date = new Date(o.created_at).toLocaleDateString();
+      acc[date] = (acc[date] || 0) + 1;
+      return acc;
+    }, {})
+  ).map(([date, value]) => ({ date, value }));
+
+  return (
+    <div className="container py-4">
+      <h1 className="mb-4 text-primary fw-bold">📊 Tableau de bord Dentiste</h1>
+
+      {/* ✅ Statistiques */}
+      <div className="row g-3 mb-4">
+        <StatCard title="Total commandes" value={totalOrders} color="primary" />
+        <StatCard title="En attente" value={pendingOrders} color="warning" />
+        <StatCard title="Fichiers à uploader" value={filesToUpload} color="danger" />
       </div>
 
-      {/* Graphiques */}
-      <div style={{ display: "flex", gap: "50px", flexWrap: "wrap" }}>
-        <div style={{ flex: 1, minWidth: 300, height: 300 }}>
-          <h3>Répartition par statut</h3>
-          <ResponsiveContainer width="100%" height="100%">
+      {/* ✅ Graphiques */}
+      <div className="row g-4">
+        <ChartCard title="Répartition par statut">
+          <ResponsiveContainer>
             <PieChart>
               <Pie data={statusData} dataKey="value" nameKey="name" outerRadius={100} label>
                 {statusData.map((entry, index) => (
@@ -87,45 +86,98 @@ export default function DentisteDashboard() {
               <Tooltip />
             </PieChart>
           </ResponsiveContainer>
-        </div>
+        </ChartCard>
 
-        <div style={{ flex: 1, minWidth: 500, height: 300 }}>
-          <h3>Commandes par type de travail</h3>
-          <ResponsiveContainer width="100%" height="100%">
+        <ChartCard title="Commandes par type de travail">
+          <ResponsiveContainer>
             <BarChart data={workTypeData}>
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey="type" />
               <YAxis allowDecimals={false} />
               <Tooltip />
-              <Bar dataKey="value" fill="#82ca9d">
+              <Bar dataKey="value">
                 {workTypeData.map((entry, index) => (
                   <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                 ))}
               </Bar>
             </BarChart>
           </ResponsiveContainer>
+        </ChartCard>
+
+        <ChartCard title="Évolution des commandes">
+          <ResponsiveContainer>
+            <LineChart data={ordersByDate}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="date" />
+              <YAxis />
+              <Tooltip />
+              <Legend />
+              <Line type="monotone" dataKey="value" stroke="#0d6efd" />
+            </LineChart>
+          </ResponsiveContainer>
+        </ChartCard>
+
+        <ChartCard title="Répartition par sous-type">
+          <ResponsiveContainer>
+            <RadarChart data={subTypeData}>
+              <PolarGrid />
+              <PolarAngleAxis dataKey="sub" />
+              <PolarRadiusAxis />
+              <Radar name="Sous-type" dataKey="value" stroke="#198754" fill="#198754" fillOpacity={0.6} />
+              <Legend />
+            </RadarChart>
+          </ResponsiveContainer>
+        </ChartCard>
+      </div>
+
+      {/* ✅ Dernières commandes */}
+      <div className="mt-5">
+        <h3 className="mb-3">📝 Dernières commandes</h3>
+        <div className="list-group">
+          {orders.slice(0, 5).map(order => (
+            <button
+              key={order.id}
+              className="list-group-item list-group-item-action d-flex justify-content-between align-items-center"
+              onClick={() => setSelectedOrder(order)}
+            >
+              <span>
+                <strong>Commande #{order.id}</strong> – {order.patient_name || "N/A"}
+              </span>
+              <span className={`badge ${order.status === "paye" ? "bg-success" : "bg-warning text-dark"}`}>
+                {order.status}
+              </span>
+            </button>
+          ))}
         </div>
       </div>
+    </div>
+  );
+}
 
-      {/* 5 dernières commandes */}
-      <div style={{ marginTop: 30 }}>
-        <h3>Dernières commandes</h3>
-        {orders.slice(0, 5).map(order => (
-          <div key={order.id} style={{ border: "1px solid #ccc", padding: 10, marginBottom: 10, borderRadius: 8, background: "#fafafa", cursor: "pointer" }}
-               onClick={() => setSelectedOrder(order)}>
-            <strong>Commande #{order.id}</strong> - {order.patient_name || "Non renseigné"} - {order.status}
-          </div>
-        ))}
+/** ✅ Composant pour les statistiques */
+function StatCard({ title, value, color }) {
+  return (
+    <div className="col-md-4">
+      <div className={`card border-${color} shadow-sm h-100`}>
+        <div className="card-body text-center">
+          <h6 className="text-muted">{title}</h6>
+          <p className={`display-6 text-${color} fw-bold`}>{value}</p>
+        </div>
       </div>
+    </div>
+  );
+}
 
-      {/* Détail de la commande sélectionnée */}
-      {selectedOrder && (
-        <OrderDetail
-          order={selectedOrder}
-          onStatusChange={handleStatusChange}
-          onFileUpload={handleFileUpload}
-        />
-      )}
+/** ✅ Composant pour les graphiques */
+function ChartCard({ title, children }) {
+  return (
+    <div className="col-md-6" style={{ height: 350 }}>
+      <div className="card h-100 shadow-sm">
+        <div className="card-header bg-light fw-bold">{title}</div>
+        <div className="card-body">
+          {children}
+        </div>
+      </div>
     </div>
   );
 }

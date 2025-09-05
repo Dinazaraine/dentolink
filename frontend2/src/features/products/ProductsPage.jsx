@@ -1,159 +1,138 @@
 import Card from "../../components/Card.jsx";
 import { useState } from "react";
-import Footer from "../../layout/Footer.jsx"; // <-- Import du footer
+import "bootstrap/dist/css/bootstrap.min.css";
+
 // ✅ Importation des images locales pour Physique
-// ✅ Importation des images locales pour Physique (tout en minuscules, tirets corrigés)
 import physique1 from "./Physique/all.png";
 import physique2 from "./Physique/aligner.png";
 import physique3 from "./Physique/amovible.png";
-import physique4 from "./Physique/blancissement.png";
-import physique5 from "./Physique/bridge.png";
-import physique6 from "./Physique/contention.png";
-import physique7 from "./Physique/couronne.png";
-import physique8 from "./Physique/couronne1.png";
-import physique9 from "./Physique/facette.png";
-import physique10 from "./Physique/inlay-onlay.png";   // <--- renommé
-import physique11 from "./Physique/lithium.png";       // <--- renommé
-import physique12 from "./Physique/metalique.png";
-import physique13 from "./Physique/peek.png";
-import physique14 from "./Physique/tcs.png";
-import physique15 from "./Physique/zircone.png";
-
+import physique4 from "./Physique/blancissement.PNG";
+import physique5 from "./Physique/bridge.PNG";
+import physique6 from "./Physique/contention.PNG";
+import physique7 from "./Physique/courrone.PNG";
+import physique8 from "./Physique/courrone1.PNG";
+import physique9 from "./Physique/facette.PNG";
+import physique10 from "./Physique/inlay onlay.PNG";
+import physique11 from "./Physique/lithyum.PNG";
+import physique12 from "./Physique/metalique.PNG";
+import physique13 from "./Physique/peek.PNG";
+import physique14 from "./Physique/tcs.PNG";
+import physique15 from "./Physique/zircone.PNG";
 
 // ✅ Importation des images locales pour Design
-// Use lower-case extensions for Linux case-sensitive file systems
-import design0 from "./design/0.png";
-import design1 from "./design/1.png";
-import design2 from "./design/2.png";
-import design3 from "./design/3.png";
-import design4 from "./design/4.png";
-import design5 from "./design/5.png";
-import design6 from "./design/6.png";
-import design7 from "./design/7.png";
-import design8 from "./design/8.png";
-import design9 from "./design/9.png";
+import design0 from "./Design/0.PNG";
+import design1 from "./Design/1.PNG";
+import design2 from "./Design/2.PNG";
+import design3 from "./Design/3.PNG";
+import design4 from "./Design/4.PNG";
+import design5 from "./Design/5.PNG";
+import design6 from "./Design/6.PNG";
+import design7 from "./Design/7.PNG";
+import design8 from "./Design/8.PNG";
+import design9 from "./Design/9.PNG";
 
 export default function ProductForm() {
   const [category, setCategory] = useState(null);
 
   const imagesPhysique = [
-    physique1, physique2, physique3, physique4, physique5,
-    physique6, physique7, physique8, physique9, physique10,
-    physique11, physique12, physique13, physique14, physique15
+    physique1,
+    physique2,
+    physique3,
+    physique4,
+    physique5,
+    physique6,
+    physique7,
+    physique8,
+    physique9,
+    physique10,
+    physique11,
+    physique12,
+    physique13,
+    physique14,
+    physique15,
   ];
 
   const imagesDesign = [
-    design0, design1, design2, design3, design4,
-    design5, design6, design7, design8, design9
+    design0,
+    design1,
+    design2,
+    design3,
+    design4,
+    design5,
+    design6,
+    design7,
+    design8,
+    design9,
   ];
 
-  const selectedImages = category === "physique"
-    ? imagesPhysique
-    : category === "design"
-    ? imagesDesign
-    : [];
+  const selectedImages =
+    category === "physique"
+      ? imagesPhysique
+      : category === "design"
+      ? imagesDesign
+      : [];
 
   return (
-    <div>
-      <Card>
-        <div style={{ display: "grid", gap: "24px" }}>
-          {/* Introduction */}
-          <div style={{ textAlign: "center" }}>
-            <h2 style={{ fontSize: "28px", marginBottom: "12px", color: "#222" }}>
-              Nos Produits
-            </h2>
-            <p style={{ fontSize: "16px", color: "#555", lineHeight: "1.6" }}>
-              La DDLM est un laboratoire numérique spécialisé dans les couronnes fabriquées en CAD/CAM.
-              Nous offrons aussi des prothèses standard : couronne céramo-métallique, amovible flexible,
-              gouttières aligneur, etc.
-            </p>
-          </div>
-
-          {/* Boutons catégorie */}
-          <div style={{ display: "flex", justifyContent: "center", gap: "20px" }}>
-            <button
-              onClick={() => setCategory("physique")}
-              style={{
-                padding: "12px 24px",
-                borderRadius: "8px",
-                border: "2px solid #0077b6",
-                background: category === "physique" ? "#0077b6" : "#fff",
-                color: category === "physique" ? "#fff" : "#0077b6",
-                fontWeight: "bold",
-                fontSize: "16px",
-                cursor: "pointer",
-                transition: "all 0.3s ease",
-              }}
-            >
-              Physique
-            </button>
-            <button
-              onClick={() => setCategory("design")}
-              style={{
-                padding: "12px 24px",
-                borderRadius: "8px",
-                border: "2px solid #0077b6",
-                background: category === "design" ? "#0077b6" : "#fff",
-                color: category === "design" ? "#fff" : "#0077b6",
-                fontWeight: "bold",
-                fontSize: "16px",
-                cursor: "pointer",
-                transition: "all 0.3s ease",
-              }}
-            >
-              Design
-            </button>
-          </div>
-
-          {/* Images */}
-          {category && (
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "repeat(auto-fill, minmax(180px, 1fr))",
-                gap: "16px",
-                marginTop: "20px",
-              }}
-            >
-              {selectedImages.length ? (
-                selectedImages.map((src, idx) => (
-                  <div
-                    key={idx}
-                    style={{
-                      borderRadius: "10px",
-                      overflow: "hidden",
-                      background: "#f4f4f4",
-                      boxShadow: "0 3px 10px rgba(0,0,0,0.1)",
-                      display: "flex",
-                      justifyContent: "center",
-                      alignItems: "center",
-                      height: "160px",
-                    }}
-                  >
-                    <img
-                      src={src}
-                      alt={`Produit ${idx + 1}`}
-                      style={{
-                        maxWidth: "100%",
-                        maxHeight: "100%",
-                        objectFit: "contain",
-                        display: "block",
-                      }}
-                    />
-                  </div>
-                ))
-              ) : (
-                <p style={{ textAlign: "center", color: "#888" }}>
-                  Aucune image disponible pour cette catégorie.
-                </p>
-              )}
-            </div>
-          )}
+    <Card>
+      <div className="container py-4">
+        {/* ✅ Introduction */}
+        <div className="text-center mb-4">
+          <h2 className="fw-bold text-dark">Nos Produits</h2>
+          <p className="text-muted">
+            La DDLM est un laboratoire numérique spécialisé dans les couronnes
+            fabriquées en CAD/CAM.
+            <br />
+            Nous offrons aussi des prothèses standard : couronne céramo-métallique,
+            amovible flexible, gouttières aligneur, etc.
+          </p>
         </div>
-      </Card>
 
-      {/* Footer */}
-      <Footer />
-    </div>
+        {/* ✅ Boutons catégorie */}
+        <div className="d-flex justify-content-center gap-3 mb-4">
+          <button
+            className={`btn btn-lg ${
+              category === "physique" ? "btn-primary" : "btn-outline-primary"
+            }`}
+            onClick={() => setCategory("physique")}
+          >
+            Physique
+          </button>
+          <button
+            className={`btn btn-lg ${
+              category === "design" ? "btn-primary" : "btn-outline-primary"
+            }`}
+            onClick={() => setCategory("design")}
+          >
+            Design
+          </button>
+        </div>
+
+        {/* ✅ Grille images */}
+        {category && (
+          <div className="row g-3">
+            {selectedImages.length ? (
+              selectedImages.map((src, idx) => (
+                <div key={idx} className="col-6 col-md-4 col-lg-3">
+                  <div className="card h-100 shadow-sm border-0">
+                    <div className="d-flex justify-content-center align-items-center p-2 bg-light" style={{ height: "160px" }}>
+                      <img
+                        src={src}
+                        alt={`Produit ${idx + 1}`}
+                        className="img-fluid"
+                        style={{ maxHeight: "140px", objectFit: "contain" }}
+                      />
+                    </div>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <div className="col-12 text-center text-muted">
+                Aucune image disponible pour cette catégorie.
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+    </Card>
   );
 }

@@ -1,5 +1,5 @@
 // src/auth/api.js
-const BASE = "http://localhost:3000/api"; // ← adapte
+const BASE = "http://localhost:3000/api"; // ← adapte en prod (ex: https://monapi.com/api)
 
 export async function loginApi({ email, password }) {
   const r = await fetch(`${BASE}/auth/login`, {
@@ -11,14 +11,36 @@ export async function loginApi({ email, password }) {
   return r.json(); // { token, user }
 }
 
-export async function registerApi({ email, password, firstName, lastName }) {
+export async function registerApi({
+  email,
+  password,
+  companyName,
+  phone_fixed,
+  phone_mobile,
+  siret,
+  address,
+  zipcode,
+  city,
+  country,
+}) {
   const r = await fetch(`${BASE}/auth/register`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ email, password, firstName, lastName }),
+    body: JSON.stringify({
+      email,
+      password,
+      companyName,
+      phone_fixed,
+      phone_mobile,
+      siret,
+      address,
+      zipcode,
+      city,
+      country,
+    }),
   });
   if (!r.ok) throw new Error(await r.text());
-  return r.json(); // { token, user } ou { ok:true } si tu préfères confirmer puis login
+  return r.json(); // { token, user } ou { message, user } selon backend
 }
 
 // helper fetch avec token

@@ -10,31 +10,66 @@ async function findUserByEmail(email) {
   return rows[0] || null;
 }
 
+// ✅ Inscription
 exports.register = async (req, res) => {
   try {
-    const { email, password, firstName = "", lastName = "" } = req.body;
-    if (!email || !password) {
-      return res.status(400).json({ error: "Email et mot de passe requis" });
+    const {
+      email,
+      password,
+      companyName,
+      phone_fixed,
+      phone_mobile,
+      siret,
+      address,
+      zipcode,
+      city,
+      country
+    } = req.body;
+
+    if (!email || !password || !companyName || !address || !zipcode || !city) {
+      return res.status(400).json({ error: "Champs obligatoires manquants" });
     }
 
     const existing = await findUserByEmail(email);
     if (existing) return res.status(409).json({ error: "Email déjà utilisé" });
 
     const hash = await bcrypt.hash(password, 10);
+
     const [r] = await db.query(
-      "INSERT INTO users (email, passwordHash, firstName, lastName) VALUES (?, ?, ?, ?)",
-      [email, hash, firstName, lastName]
+      `INSERT INTO users 
+        (email, passwordHash, companyName, phone_fixed, phone_mobile, siret, address, zipcode, city, country, role, accountStatus, createdAt) 
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'user', 'pending', NOW())`,
+      [
+        email,
+        hash,
+        companyName,
+        phone_fixed || null,
+        phone_mobile || null,
+        siret || null,
+        address,
+        zipcode,
+        city,
+        country || "France"
+      ]
     );
 
-    const user = { id: r.insertId, email, firstName, lastName };
-    const token = jwt.sign({ sub: user.id, email }, JWT_SECRET, { expiresIn: "7d" });
+    const user = {
+      id: r.insertId,
+      email,
+      companyName,
+      role: "user",
+      accountStatus: "pending"
+    };
+    const token = jwt.sign({ sub: user.id, email: user.email, role: user.role }, JWT_SECRET, { expiresIn: "7d" });
+
     res.status(201).json({ token, user });
   } catch (e) {
-    console.error(e);
+    console.error("Erreur register:", e);
     res.status(500).json({ error: "Erreur serveur (register)" });
   }
 };
 
+// ✅ Connexion
 exports.login = async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -44,13 +79,11 @@ exports.login = async (req, res) => {
     const ok = await bcrypt.compare(password, u.passwordHash);
     if (!ok) return res.status(401).json({ error: "Identifiants invalides" });
 
-    // Vérifs statut
     if (!u.isActive) return res.status(403).json({ error: "Compte inactif" });
     if (u.accountStatus !== "approved") {
       return res.status(403).json({ error: `Compte ${u.accountStatus}` });
     }
 
-    // Met à jour last_login_at et première présence
     const now = new Date();
     await db.query(
       "UPDATE users SET last_login_at = ?, last_seen_at = ? WHERE id = ?",
@@ -60,8 +93,7 @@ exports.login = async (req, res) => {
     const user = {
       id: u.id,
       email: u.email,
-      firstName: u.firstName,
-      lastName: u.lastName,
+      companyName: u.companyName,
       role: u.role,
       accountStatus: u.accountStatus,
       reset_required: !!u.reset_required
@@ -70,16 +102,16 @@ exports.login = async (req, res) => {
 
     res.json({ token, user });
   } catch (e) {
-    console.error(e);
+    console.error("Erreur login:", e);
     res.status(500).json({ error: "Erreur serveur (login)" });
   }
 };
 
-// Utilisé par le frontend pour récupérer mon profil actuel
+// ✅ Récupérer profil
 exports.me = async (req, res) => {
   try {
     const [rows] = await db.query(
-      "SELECT id, email, firstName, lastName, role, accountStatus, reset_required, last_seen_at FROM users WHERE id = ?",
+      "SELECT id, email, companyName, phone_fixed, phone_mobile, siret, address, zipcode, city, country, role, accountStatus, reset_required, last_seen_at FROM users WHERE id = ?",
       [req.user.id]
     );
     const me = rows[0];
@@ -90,7 +122,7 @@ exports.me = async (req, res) => {
   }
 };
 
-// Ping "présence": met à jour last_seen_at (appel périodique depuis React)
+// ✅ Ping présence
 exports.heartbeat = async (req, res) => {
   try {
     await db.query("UPDATE users SET last_seen_at = ? WHERE id = ?", [new Date(), req.user.id]);
@@ -101,8 +133,7 @@ exports.heartbeat = async (req, res) => {
   }
 };
 
-// Changement de mot de passe par l'utilisateur connecté
-// - si reset_required=1 ou même cas normal (tu as demandé “champ pour modifier”)
+// ✅ Changement de mot de passe
 exports.changeMyPassword = async (req, res) => {
   try {
     const { newPassword } = req.body;

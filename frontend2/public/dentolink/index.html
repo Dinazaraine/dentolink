@@ -1,0 +1,878 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>DENTOLINK Digital Dental Lab Madagasikara</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"/>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet"/>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" rel="stylesheet"/>
+  <link href="styles.css" rel="stylesheet"/>
+</head>
+<body>
+ <!-- Topbar -->
+<div class="topbar bg-primary text-white py-3">
+  <div class="container d-flex flex-column flex-lg-row justify-content-center justify-content-lg-between align-items-center">
+    <span class="fw-semibold">
+      <i class="fas fa-question-circle me-2"></i>
+      Une question ? Appelez-nous au 
+      <a href="tel:+33685418456" class="text-white fw-bold text-decoration-underline">+33 6 85 41 84 56</a>
+      ou 
+      <a href="mailto:contact@dentolink.com" class="text-white fw-bold text-decoration-underline">contactez-nous</a>
+    </span>
+  </div>
+</div>
+
+
+  <!-- Header -->
+  <header class="header-section">
+    <nav class="navbar navbar-expand-lg navbar-light">
+      <div class="container">
+        <a class="navbar-brand animate__animated animate__fadeInLeft" href="#" onclick="showSection('accueil')">
+          <i class="fas fa-tooth text-primary me-2"></i>
+          <span class="brand-text">DENTOLINK Digital Dental Lab</span>
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+          <ul class="navbar-nav ms-auto">
+            <li class="nav-item"><a class="nav-link" href="#" onclick="showSection('accueil')">Accueil</a></li>
+            <li class="nav-item dropdown">
+              <a class="nav-link dropdown-toggle" href="#" id="servicesDropdown" role="button" data-bs-toggle="dropdown">Services</a>
+              <ul class="dropdown-menu">
+                <li><a class="dropdown-item" href="#" onclick="showSection('conditions')">Conditions de vente</a></li>
+                <li><a class="dropdown-item" href="#" onclick="showSection('upload')">Soumission de cas</a></li>
+                <li><a class="dropdown-item" href="#" onclick="showSection('devis')">Évaluation & Devis</a></li>
+                <li><a class="dropdown-item" href="#" onclick="showSection('garantie')">Conditions de garantie</a></li>
+                <li><a class="dropdown-item" href="#" onclick="showSection('logistique')">Guide logistique</a></li>
+                <li><a class="dropdown-item" href="#" onclick="showSection('faq')">FAQ</a></li>
+                <li><a class="dropdown-item" href="#" onclick="showSection('formation')">Formation & Support</a></li>
+              </ul>
+            </li>
+            <li class="nav-item"><a class="nav-link" href="#" onclick="showSection('produits')">Produits</a></li>
+            <li class="nav-item"><a class="nav-link" href="#" onclick="showSection('machines')">Nos Machines</a></li>
+            <li class="nav-item"><a class="nav-link" href="#" onclick="showSection('apropos')">À propos</a></li>
+            <li class="nav-item"><a class="nav-link" href="#" onclick="showSection('contact')">Contact</a></li>
+            <li class="nav-item"><a class="nav-link" href="#" onclick="showSection('admin')">connexion</a></li>
+            <li class="nav-item">
+              <!-- Google Translate intégré dans la navbar -->
+            <li class="nav-item d-flex align-items-center ms-2">
+              <div id="google_translate_element"></div>
+            </li>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </nav>
+  </header>
+
+  <!-- Hero commun -->
+  <div class="hero-section-common" id="heroSection">
+    <div class="container">
+      <div class="row align-items-center">
+        <div class="col-lg-8 mx-auto text-center">
+          <div class="hero-content animate__animated animate__fadeInUp">
+            <h1 class="hero-title">Excellence en Prothèse Dentaire</h1>
+            <p class="hero-subtitle">Laboratoire dentaire numérique de pointe à Madagascar, spécialisé dans la fabrication de prothèses dentaires de haute qualité.</p>
+            <button class="btn btn-primary btn-lg pulse-btn" onclick="showSection('produits')">
+              <i class="fas fa-microscope me-2"></i>Découvrir nos Services
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main -->
+  <main>
+    <!-- Accueil -->
+    <section id="accueil" class="section-content">
+      <div class="hero-section-accueil">
+        <div class="container">
+          <div class="row align-items-center">
+            <div class="col-lg-6">
+              <div class="hero-content animate__animated animate__fadeInLeft">
+                <h1 class="hero-title-accueil">Bienvenue chez DENTOLINK Digital Dental Lab</h1>
+                <p class="hero-subtitle-accueil">Laboratoire dentaire numérique de référence à Madagascar. Nous combinons expertise traditionnelle et technologies de pointe pour créer des prothèses dentaires d'exception.</p>
+                <div class="hero-buttons">
+                  <button class="btn btn-primary btn-lg me-3 pulse-btn" onclick="showSection('produits')">
+                    <i class="fas fa-cogs me-2"></i>Nos Services
+                  </button>
+                  <button class="btn btn-outline-light btn-lg" onclick="showSection('contact')">
+                    <i class="fas fa-phone me-2"></i>Nous Contacter
+                  </button>
+                </div>
+              </div>
+            </div>
+            <div class="col-lg-6">
+              <div class="hero-image animate__animated animate__fadeInRight">
+                <img src="images/service-whitening.webp" alt="Sourire éclatant" class="img-fluid rounded-3 shadow-lg floating-image"/>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- À propos -->
+      <div class="about-section py-5">
+        <div class="container">
+          <div class="row">
+            <div class="col-lg-8 mx-auto text-center">
+              <h2 class="section-title mb-4">DENTOLINK Digital Dental Lab Madagasikara</h2>
+              <p class="lead">Fondé avec la vision de révolutionner la prothèse dentaire à Madagascar, DENTOLINK combine l'expertise artisanale traditionnelle avec les dernières technologies numériques.</p>
+              <p>Notre laboratoire utilise des équipements de pointe incluant la CAO/FAO dentaire, l'impression 3D et la numérisation intra-orale pour garantir des résultats d'une précision exceptionnelle.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Showcase Produits -->
+      <div class="products-showcase py-5 bg-light">
+        <div class="container">
+          <h2 class="text-center mb-5">Échantillons de nos Réalisations</h2>
+          <div class="row g-4">
+            <div class="col-md-4">
+              <div class="product-showcase-card">
+                <!-- Correction du chemin d'image -->
+                <img src="images/service-implants.webp" alt="Implants Dentaires" class="img-fluid rounded"/>
+                <div class="showcase-content">
+                  <h4><i class="fas fa-screwdriver me-2"></i>Implants Dentaires</h4>
+                  <p>Implants en titane de grade médical avec couronnes céramiques sur mesure.</p>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-4">
+              <div class="product-showcase-card">
+                <!-- Correction du chemin d'image -->
+                <img src="images/denture-kit.webp" alt="Prothèses Complètes" class="img-fluid rounded"/>
+                <div class="showcase-content">
+                  <h4><i class="fas fa-teeth me-2"></i>Prothèses Complètes</h4>
+                  <p>Prothèses amovibles complètes avec ajustement parfait et esthétique naturelle.</p>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-4">
+              <div class="product-showcase-card">
+                <!-- Correction du chemin d'image -->
+                <img src="images/electric-toothbrush.webp" alt="Équipements Dentaires" class="img-fluid rounded"/>
+                <div class="showcase-content">
+                  <h4><i class="fas fa-tools me-2"></i>Équipements Spécialisés</h4>
+                  <p>Outils et équipements dentaires de dernière génération pour un soin optimal.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      
+
+      <!-- Services -->
+            <div class="services-section py-5">
+              <div class="container">
+                <h2 class="text-center mb-5">Nos Services Professionnels</h2>
+                <div id="services-products" class="row g-4"><!-- Injecté par JS --></div>
+              </div>
+            </div>
+
+      <!-- Fin de la section d'accueil -->
+    </section>
+
+    <!-- Conditions de Vente -->
+    <section id="conditions" class="section-content" style="display: none;">
+      <div class="container py-5">
+        <div class="row">
+          <div class="col-lg-8 mx-auto">
+            <h2 class="text-center mb-4">Conditions de Vente</h2>
+            <p class="lead">Nos conditions de vente définissent les modalités relatives aux commandes, aux paiements et à la livraison de nos services.</p>
+            <h5 class="mt-4">Prise de commande</h5>
+            <p>Toute commande est considérée comme validée après réception des empreintes numériques complètes et confirmation par notre équipe. Les prix affichés sont hors taxes et peuvent être ajustés en fonction de la complexité du cas.</p>
+            <h5 class="mt-4">Paiement</h5>
+            <p>Le règlement s’effectue à la commande par carte bancaire ou virement. Les factures sont émises en euros (€) et doivent être réglées sous 30&nbsp;jours.</p>
+            <h5 class="mt-4">Livraison</h5>
+            <p>Les délais de fabrication varient de 3 à 7&nbsp;jours ouvrés selon le type de prothèse. La livraison est assurée par coursier ou service postal sécurisé. Les frais de port sont offerts pour toute commande supérieure à 100€.</p>
+            <h5 class="mt-4">Retours et ajustements</h5>
+            <p>En cas de défaut ou d’ajustement nécessaire, nous acceptons les retours dans un délai de 30&nbsp;jours après la livraison. Une prise en charge rapide est garantie afin de vous offrir entière satisfaction.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Soumission de cas -->
+    <section id="upload" class="section-content" style="display: none;">
+      <div class="container py-5">
+        <div class="row">
+          <div class="col-lg-8 mx-auto">
+            <h2 class="text-center mb-4">Soumission de cas</h2>
+            <p class="lead">Transmettez-nous vos empreintes numériques et documents cliniques en toute sécurité.</p>
+            <p>Pour chaque cas, veuillez préparer les fichiers suivants :</p>
+            <ul>
+              <li>Scans intra-oraux (format STL, OBJ, PLY)</li>
+              <li>Radiographies ou scanner CBCT (format DICOM)</li>
+              <li>Instructions détaillées et prescriptions</li>
+            </ul>
+            <p>Utilisez le formulaire ci-dessous pour envoyer vos fichiers directement à notre laboratoire.</p>
+            <form>
+              <div class="mb-3">
+                <label for="caseName" class="form-label">Nom du patient ou référence *</label>
+                <input type="text" class="form-control" id="caseName" required/>
+              </div>
+              <div class="mb-3">
+                <label for="caseFiles" class="form-label">Fichiers du cas *</label>
+                <input type="file" class="form-control" id="caseFiles" multiple required/>
+                <div class="form-text">Formats acceptés : STL, DICOM, ZIP (max&nbsp;200&nbsp;Mo)</div>
+              </div>
+              <div class="mb-3">
+                <label for="caseNotes" class="form-label">Instructions supplémentaires</label>
+                <textarea class="form-control" id="caseNotes" rows="4"></textarea>
+              </div>
+              <button type="submit" class="btn btn-primary"><i class="fas fa-upload me-2"></i>Soumettre</button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Évaluation & Devis -->
+    <section id="devis" class="section-content" style="display: none;">
+      <div class="container py-5">
+        <div class="row">
+          <div class="col-lg-8 mx-auto">
+            <h2 class="text-center mb-4">Évaluation &amp; Devis</h2>
+            <p class="lead">Obtenez une estimation détaillée et transparente pour vos projets.</p>
+            <p>Nos techniciens examinent vos fichiers et prescriptions afin de vous proposer un devis précis. Les critères pris en compte incluent la complexité du cas, les matériaux utilisés et les délais souhaités.</p>
+            <p>Pour une estimation immédiate, veuillez compléter le formulaire suivant :</p>
+            <form>
+              <div class="mb-3">
+                <label for="quoteName" class="form-label">Nom et prénom *</label>
+                <input type="text" class="form-control" id="quoteName" required/>
+              </div>
+              <div class="mb-3">
+                <label for="quoteEmail" class="form-label">Email *</label>
+                <input type="email" class="form-control" id="quoteEmail" required/>
+              </div>
+              <div class="mb-3">
+                <label for="quoteService" class="form-label">Type de service *</label>
+                <select class="form-select" id="quoteService" required>
+                  <option value="">Choisir un service</option>
+                  <option value="couronne">Couronne</option>
+                  <option value="implant">Implant</option>
+                  <option value="appareil">Appareil orthodontique</option>
+                </select>
+              </div>
+              <div class="mb-3">
+                <label for="quoteDetails" class="form-label">Détails du cas</label>
+                <textarea class="form-control" id="quoteDetails" rows="4"></textarea>
+              </div>
+              <button type="submit" class="btn btn-primary"><i class="fas fa-file-invoice-dollar me-2"></i>Demander un devis</button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Conditions de Garantie -->
+    <section id="garantie" class="section-content" style="display: none;">
+      <div class="container py-5">
+        <div class="row">
+          <div class="col-lg-8 mx-auto">
+            <h2 class="text-center mb-4">Conditions de Garantie</h2>
+            <p class="lead">Parce que la qualité est au cœur de notre métier, toutes nos prothèses sont couvertes par une garantie.</p>
+            <h5 class="mt-4">Durée de la garantie</h5>
+            <p>Nos produits sont garantis 2&nbsp;ans à compter de la date de livraison. Cette garantie couvre les défauts de fabrication et de matériaux.</p>
+            <h5 class="mt-4">Exclusions</h5>
+            <p>La garantie ne s'applique pas en cas d'usure normale, de mauvaise utilisation, ou si le protocole d'entretien n'a pas été respecté. Les dommages causés par un accident ou une intervention non autorisée ne sont pas couverts.</p>
+            <h5 class="mt-4">Procédure</h5>
+            <p>Pour bénéficier de la garantie, veuillez nous contacter avec le numéro de commande et une description détaillée du problème. Une évaluation sera réalisée et un remplacement ou une réparation sera proposé(e) selon le cas.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Guide Logistique -->
+    <section id="logistique" class="section-content" style="display: none;">
+      <div class="container py-5">
+        <div class="row">
+          <div class="col-lg-8 mx-auto">
+            <h2 class="text-center mb-4">Guide Logistique</h2>
+            <p class="lead">Pour garantir la sécurité et la rapidité de vos envois, suivez nos conseils de logistique.</p>
+            <h5 class="mt-4">Emballage</h5>
+            <p>Utilisez des boîtes solides et adaptées à la taille des modèles. Protégez soigneusement les empreintes avec du papier bulle et placez-les dans des sachets scellés.</p>
+            <h5 class="mt-4">Envoi</h5>
+            <p>Nous recommandons l'utilisation de services de messagerie express avec suivi. Indiquez clairement l'adresse du laboratoire et votre référence de cas sur le colis.</p>
+            <h5 class="mt-4">Réception</h5>
+            <p>À réception, nos équipes vérifient l'intégrité du colis et vous informent immédiatement en cas d'anomalie. Les empreintes sont ensuite numérisées et intégrées dans notre workflow.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- FAQ -->
+    <section id="faq" class="section-content" style="display: none;">
+      <div class="container py-5">
+        <div class="row">
+          <div class="col-lg-8 mx-auto">
+            <h2 class="text-center mb-4">Foire Aux Questions</h2>
+            <div class="accordion" id="faqAccordion">
+              <div class="accordion-item">
+                <h2 class="accordion-header" id="faq1">
+                  <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faqCollapse1" aria-expanded="false">
+                    Quels fichiers dois-je fournir pour un devis ?
+                  </button>
+                </h2>
+                <div id="faqCollapse1" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                  <div class="accordion-body">
+                    Nous avons besoin des empreintes numériques (STL/DICOM), des radiographies éventuelles et d’une prescription détaillée de votre demande.
+                  </div>
+                </div>
+              </div>
+              <div class="accordion-item">
+                <h2 class="accordion-header" id="faq2">
+                  <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faqCollapse2" aria-expanded="false">
+                    Quels sont les délais de fabrication ?
+                  </button>
+                </h2>
+                <div id="faqCollapse2" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                  <div class="accordion-body">
+                    Les délais varient de 3 à 7&nbsp;jours ouvrés selon la complexité du cas et les matériaux requis. Un délai plus précis est indiqué lors de la confirmation de la commande.
+                  </div>
+                </div>
+              </div>
+              <div class="accordion-item">
+                <h2 class="accordion-header" id="faq3">
+                  <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faqCollapse3" aria-expanded="false">
+                    Proposez-vous des formations ?
+                  </button>
+                </h2>
+                <div id="faqCollapse3" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                  <div class="accordion-body">
+                    Oui, nous proposons des formations à l’utilisation de nos logiciels et équipements. Consultez la rubrique Formation &amp; Support pour plus de détails.
+                  </div>
+                </div>
+              </div>
+              <div class="accordion-item">
+                <h2 class="accordion-header" id="faq4">
+                  <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faqCollapse4" aria-expanded="false">
+                    Comment contacter le service client ?
+                  </button>
+                </h2>
+                <div id="faqCollapse4" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                  <div class="accordion-body">
+                    Vous pouvez nous joindre par téléphone au +33&nbsp;6&nbsp;85&nbsp;41&nbsp;84&nbsp;56 ou via le formulaire de contact présent sur notre site. Nous vous répondrons dans les plus brefs délais.
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Formation & Support -->
+    <section id="formation" class="section-content" style="display: none;">
+      <div class="container py-5">
+        <div class="row">
+          <div class="col-lg-8 mx-auto">
+            <h2 class="text-center mb-4">Formation &amp; Support</h2>
+            <p class="lead">Nous vous accompagnons dans la prise en main de nos outils numériques.</p>
+            <h5 class="mt-4">Programmes de formation</h5>
+            <p>Nous proposons des sessions de formation individuelles ou en groupe couvrant la modélisation&nbsp;3D, la planification implantaire et l’utilisation des scanners intra-oraux.</p>
+            <h5 class="mt-4">Support technique</h5>
+            <p>Notre équipe de support est disponible pour répondre à vos questions techniques par téléphone ou par e‑mail. Des guides et des tutoriels en ligne sont également mis à votre disposition.</p>
+            <h5 class="mt-4">Prise de rendez-vous</h5>
+            <p>Pour planifier une session de formation ou obtenir une assistance, veuillez nous contacter via le formulaire de contact. Nous vous proposerons des créneaux adaptés.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- NOS MACHINES & LOGICIELS -->
+    <section id="machines" class="section-content py-5 bg-white" style="display: none;">
+  <div class="container">
+    <h2 class="text-center mb-5">Nos Machines & Logiciels</h2>
+    <p class="text-center text-muted mb-5">
+      Découvrez nos équipements de pointe et logiciels numériques utilisés pour la conception et la fabrication de prothèses dentaires de haute précision.
+    </p>
+
+    <div class="row g-4">
+      <div class="col-6 col-md-4 col-lg-3">
+        <div class="software-card text-center p-3 shadow-sm bg-light rounded">
+          <img src="images/logigiel1.png" alt="Maestro 3D" class="img-fluid mb-3" style="max-height:80px; object-fit:contain;">
+          <h6 class="mb-1">Maestro 3D</h6>
+          <small class="text-muted d-block">Dental Studio 6.0</small>
+        </div>
+      </div>
+      <div class="col-6 col-md-4 col-lg-3">
+        <div class="software-card text-center p-3 shadow-sm bg-light rounded">
+          <img src="images/logigiel2.png" alt="Exocad" class="img-fluid mb-3" style="max-height:80px; object-fit:contain;">
+          <h6 class="mb-1">Exocad</h6>
+          <small class="text-muted d-block">Conception prothétique CFAO</small>
+        </div>
+      </div>
+      <div class="col-6 col-md-4 col-lg-3">
+        <div class="software-card text-center p-3 shadow-sm bg-light rounded">
+          <img src="images/logigiel3.png" alt="Medit Link" class="img-fluid mb-3" style="max-height:80px; object-fit:contain;">
+          <h6 class="mb-1">Medit Link</h6>
+          <small class="text-muted d-block">Flux scanner intra-oral</small>
+        </div>
+      </div>
+      <div class="col-6 col-md-4 col-lg-3">
+        <div class="software-card text-center p-3 shadow-sm bg-light rounded">
+          <img src="images/logiciel4.png" alt="BlueSkyPlan" class="img-fluid mb-3" style="max-height:80px; object-fit:contain;">
+          <h6 class="mb-1">BlueSkyPlan</h6>
+          <small class="text-muted d-block">Planification implantaire guidée</small>
+        </div>
+      </div>
+      <div class="col-6 col-md-4 col-lg-3">
+        <div class="software-card text-center p-3 shadow-sm bg-light rounded">
+          <img src="images/logiciel5.png" alt="Carestream Dental" class="img-fluid mb-3" style="max-height:80px; object-fit:contain;">
+          <h6 class="mb-1">Carestream Dental</h6>
+          <small class="text-muted d-block">Imagerie & radiologie</small>
+        </div>
+      </div>
+      <div class="col-6 col-md-4 col-lg-3">
+        <div class="software-card text-center p-3 shadow-sm bg-light rounded">
+          <img src="images/logigiel6.png" alt="Simulation 3D" class="img-fluid mb-3" style="max-height:80px; object-fit:contain;">
+          <h6 class="mb-1">Simulation 3D</h6>
+          <small class="text-muted d-block">Modélisation numérique avancée</small>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /NOS MACHINES & LOGICIELS -->
+
+    <!-- Produits (UNE SEULE PAGE) -->
+    <section id="produits" class="section-content" style="display: none;">
+      <div class="container py-5">
+        <!-- Filtres -->
+        <div class="filters mb-4">
+          <div class="btn-group" role="group">
+            <button type="button" class="btn btn-outline-primary active" onclick="filterProducts('all', event)">Tous</button>
+            <button type="button" class="btn btn-outline-primary" onclick="filterProducts('protege', event)">Protège-Dents</button>
+            <button type="button" class="btn btn-outline-primary" onclick="filterProducts('appareil', event)">Appareils</button>
+            <button type="button" class="btn btn-outline-primary" onclick="filterProducts('couronne', event)">Couronnes</button>
+          </div>
+        </div>
+
+        <!-- Grille -->
+        <div id="products-grid" class="row g-4"><!-- Injecté par script.js --></div>
+      </div>
+    </section>
+
+    <!-- Services (pages internes) -->
+    <section id="consultation" class="section-content" style="display: none;">
+      <div class="container py-5">
+        <div class="row">
+          <div class="col-lg-8 mx-auto text-center">
+            <h2 class="mb-4">Service de Consultation Professionnelle</h2>
+            <!-- Correction du chemin d'image -->
+            <img src="images/service-checkup.webp" alt="Consultation" class="img-fluid rounded mb-4 shadow"/>
+            <p class="lead">Nos experts vous offrent des consultations personnalisées avec les dernières technologies de diagnostic.</p>
+            <div class="service-features mt-5">
+              <div class="row g-4">
+                <div class="col-md-4"><div class="feature-item"><i class="fas fa-user-md fa-3x text-primary mb-3"></i><h4>Experts Qualifiés</h4><p>Plus de 15 ans d'expérience</p></div></div>
+                <div class="col-md-4"><div class="feature-item"><i class="fas fa-clock fa-3x text-primary mb-3"></i><h4>Rendez-vous Rapide</h4><p>Disponibilité sous 24h</p></div></div>
+                <div class="col-md-4"><div class="feature-item"><i class="fas fa-award fa-3x text-primary mb-3"></i><h4>Garantie Qualité</h4><p>Satisfaction garantie 100%</p></div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="orthodontie" class="section-content" style="display: none;">
+      <div class="container py-5">
+        <div class="row">
+          <div class="col-lg-8 mx-auto text-center">
+            <h2 class="mb-4">Service d'Orthodontie Moderne</h2>
+            <div class="orthodontic-image mb-4"><i class="fas fa-align-center fa-5x text-primary"></i></div>
+            <p class="lead">Redressez votre sourire avec nos solutions orthodontiques invisibles et confortables.</p>
+            <div class="orthodontic-options mt-5">
+              <div class="row g-4">
+                <div class="col-md-6"><div class="option-card"><i class="fas fa-teeth fa-3x text-primary mb-3"></i><h4>Appareils Traditionnels</h4><p>Efficaces et économiques</p><span class="price">À partir de 1200€</span></div></div>
+                <div class="col-md-6"><div class="option-card"><i class="fas fa-eye-slash fa-3x text-primary mb-3"></i><h4>Appareils Invisibles</h4><p>Discrets et confortables</p><span class="price">À partir de 2500€</span></div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="implants" class="section-content" style="display: none;">
+      <div class="container py-5">
+        <div class="row">
+          <div class="col-lg-8 mx-auto text-center">
+            <h2 class="mb-4">Service d'Implants Dentaires</h2>
+            <!-- Correction du chemin d'image -->
+            <img src="images/service-implants.webp" alt="Implants" class="img-fluid rounded mb-4 shadow"/>
+            <p class="lead">Retrouvez un sourire complet avec nos implants dentaires de dernière génération.</p>
+            <div class="implant-process mt-5">
+              <div class="row g-4">
+                <div class="col-md-3"><div class="process-step"><div class="step-number">1</div><h5>Consultation</h5><p>Évaluation complète</p></div></div>
+                <div class="col-md-3"><div class="process-step"><div class="step-number">2</div><h5>Planification</h5><p>Plan de traitement 3D</p></div></div>
+                <div class="col-md-3"><div class="process-step"><div class="step-number">3</div><h5>Chirurgie</h5><p>Pose de l'implant</p></div></div>
+                <div class="col-md-3"><div class="process-step"><div class="step-number">4</div><h5>Couronne</h5><p>Pose finale</p></div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="blanchiment" class="section-content" style="display: none;">
+      <div class="container py-5">
+        <div class="row">
+          <div class="col-lg-8 mx-auto text-center">
+            <h2 class="mb-4">Service de Blanchiment Dentaire</h2>
+            <!-- Correction du chemin d'image -->
+            <img src="images/service-whitening.webp" alt="Blanchiment" class="img-fluid rounded mb-4 shadow"/>
+            <p class="lead">Retrouvez l'éclat naturel de vos dents avec nos traitements de blanchiment révolutionnaires.</p>
+            <div class="whitening-options mt-5">
+              <div class="row g-4">
+                <div class="col-md-4"><div class="whitening-card"><i class="fas fa-bolt fa-3x text-danger mb-3"></i><h4>Blanchiment Express</h4><p>1 séance - 1h</p><span class="price">150€</span></div></div>
+                <div class="col-md-4"><div class="whitening-card"><i class="fas fa-crown fa-3x text-warning mb-3"></i><h4>Blanchiment Premium</h4><p>3 séances - Résultats durables</p><span class="price">350€</span></div></div>
+                <div class="col-md-4"><div class="whitening-card"><i class="fas fa-home fa-3x text-success mb-3"></i><h4>Kit à Domicile</h4><p>Traitement personnalisé</p><span class="price">120€</span></div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- À propos -->
+    <section id="apropos" class="section-content" style="display: none;">
+      <div class="container py-5">
+        <div class="row">
+          <div class="col-lg-8 mx-auto">
+            <h2 class="text-center mb-5">À Propos de DENTOLINK Digital Dental Lab</h2>
+            <div class="about-content">
+              <!-- Correction du chemin d'image -->
+              <img src="images/denture-kit.webp" alt="Notre Laboratoire" class="img-fluid rounded mb-4 shadow"/>
+              <p class="lead">DENTOLINK Digital Dental Lab Madagasikara est votre partenaire de confiance dans le domaine de la prothèse dentaire depuis plus d'une décennie.</p>
+              <p>Fondé à Madagascar, notre laboratoire s'est spécialisé dans la fabrication de prothèses dentaires de haute qualité en utilisant les dernières technologies numériques. Nous servons les professionnels de la santé dentaire à travers tout Madagascar.</p>
+
+              <div class="row mt-5">
+                <div class="col-md-6"><h4><i class="fas fa-bullseye text-primary me-2"></i>Notre Mission</h4><p>Fournir des prothèses dentaires de qualité supérieure en combinant savoir-faire traditionnel et innovation technologique.</p></div>
+                <div class="col-md-6"><h4><i class="fas fa-eye text-primary me-2"></i>Notre Vision</h4><p>Être le laboratoire dentaire de référence à Madagascar et dans l'océan Indien.</p></div>
+              </div>
+
+              <div class="values-section mt-5">
+                <h4 class="mb-4">Nos Valeurs</h4>
+                <div class="row g-4">
+                  <div class="col-md-4"><div class="value-item"><i class="fas fa-heart fa-3x text-danger mb-3"></i><h5>Excellence</h5><p>Nous visons la perfection dans chaque réalisation</p></div></div>
+                  <div class="col-md-4"><div class="value-item"><i class="fas fa-handshake fa-3x text-primary mb-3"></i><h5>Partenariat</h5><p>Collaboration étroite avec nos dentistes partenaires</p></div></div>
+                  <div class="col-md-4"><div class="value-item"><i class="fas fa-cogs fa-3x text-success mb-3"></i><h5>Innovation</h5><p>Adoption des dernières technologies dentaires</p></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Contact -->
+    <section id="contact" class="section-content" style="display: none;">
+      <div class="container py-5">
+        <div class="row">
+          <div class="col-lg-8 mx-auto">
+            <h2 class="text-center mb-5">Contactez-Nous</h2>
+
+            <!-- Formulaire -->
+            <div class="card mb-5">
+              <div class="card-header"><h4><i class="fas fa-envelope me-2"></i>Envoyez-nous un message</h4></div>
+              <div class="card-body">
+                <form id="contactForm">
+                  <div class="row g-3">
+                    <div class="col-md-6"><label for="contactName" class="form-label">Nom complet *</label><input type="text" class="form-control" id="contactName" required/></div>
+                    <div class="col-md-6"><label for="contactEmail" class="form-label">Email *</label><input type="email" class="form-control" id="contactEmail" required/></div>
+                    <div class="col-md-6"><label for="contactPhone" class="form-label">Téléphone</label><input type="tel" class="form-control" id="contactPhone"/></div>
+                    <div class="col-md-6">
+                      <label for="contactSubject" class="form-label">Sujet *</label>
+                      <select class="form-select" id="contactSubject" required>
+                        <option value="">Choisir un sujet</option>
+                        <option value="devis">Demande de devis</option>
+                        <option value="info">Demande d'information</option>
+                        <option value="rdv">Prise de rendez-vous</option>
+                        <option value="autre">Autre</option>
+                      </select>
+                    </div>
+                    <div class="col-12"><label for="contactMessage" class="form-label">Message *</label><textarea class="form-control" id="contactMessage" rows="5" required></textarea></div>
+                    <div class="col-12"><button type="submit" class="btn btn-primary btn-lg"><i class="fas fa-paper-plane me-2"></i>Envoyer le message</button></div>
+                  </div>
+                </form>
+              </div>
+            </div>
+
+            <!-- Infos -->
+            <div class="row g-4">
+              <div class="col-md-6"><div class="contact-info-card"><h5><i class="fas fa-map-marker-alt text-primary me-2"></i>Adresse</h5><p>Antananarivo, Madagascar<br/>Lot II M 15 Bis Ambohidahy</p></div></div>
+              <div class="col-md-6"><div class="contact-info-card"><h5><i class="fas fa-phone text-primary me-2"></i>Téléphone</h5><p>+33 6 85 41 84 56</p></div></div>
+              <div class="col-md-6"><div class="contact-info-card"><h5><i class="fas fa-envelope text-primary me-2"></i>Email</h5><p>dentolink3@gmail.com</p></div></div>
+              <div class="col-md-6"><div class="contact-info-card"><h5><i class="fas fa-clock text-primary me-2"></i>Horaires</h5><p>Lun-Ven: 8h-17h<br/>Sam: 8h-12h</p></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Admin -->
+    <section id="admin" class="section-content" style="display: none;">
+      <div class="container py-5">
+        <div class="row">
+          <div class="col-lg-10 mx-auto">
+            <h2 class="text-center mb-5">Administration - Gestion des Commandes</h2>
+
+            <!-- Stats -->
+            <div class="row g-4 mb-5">
+              <div class="col-md-3"><div class="admin-stat-card"><i class="fas fa-shopping-cart fa-2x text-primary"></i><h3 id="totalOrders">0</h3><p>Commandes Totales</p></div></div>
+              <div class="col-md-3"><div class="admin-stat-card"><i class="fas fa-clock fa-2x text-warning"></i><h3 id="pendingOrders">0</h3><p>En Attente</p></div></div>
+              <div class="col-md-3"><div class="admin-stat-card"><i class="fas fa-check fa-2x text-success"></i><h3 id="completedOrders">0</h3><p>Terminées</p></div></div>
+              <div class="col-md-3"><div class="admin-stat-card"><i class="fas fa-euro-sign fa-2x text-info"></i><h3 id="totalRevenue">0€</h3><p>Chiffre d'Affaires</p></div></div>
+            </div>
+
+            <!-- Liste commandes -->
+            <div class="card">
+              <div class="card-header"><h4><i class="fas fa-list me-2"></i>Liste des Commandes</h4></div>
+              <div class="card-body">
+                <div class="table-responsive">
+                  <table class="table table-striped">
+                    <thead><tr><th>ID</th><th>Date</th><th>Client</th><th>Email</th><th>Total</th><th>Statut</th><th>Actions</th></tr></thead>
+                    <tbody id="ordersTableBody"><tr><td colspan="7" class="text-center text-muted">Aucune commande pour le moment</td></tr></tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+
+            <!-- Messages -->
+            <div class="card mt-5">
+              <div class="card-header"><h4><i class="fas fa-envelope me-2"></i>Messages de Contact</h4></div>
+              <div class="card-body">
+                <div class="table-responsive">
+                  <table class="table table-striped">
+                    <thead><tr><th>Date</th><th>Nom</th><th>Email</th><th>Sujet</th><th>Message</th><th>Actions</th></tr></thead>
+                    <tbody id="messagesTableBody"><tr><td colspan="6" class="text-center text-muted">Aucun message pour le moment</td></tr></tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Checkout -->
+    <section id="checkout" class="section-content" style="display: none;">
+      <div class="container py-5">
+        <div class="row">
+          <div class="col-lg-8">
+            <div class="checkout-form">
+              <h3 class="mb-4"><i class="fas fa-credit-card me-2"></i>Finaliser votre commande</h3>
+
+              <!-- Livraison -->
+              <div class="card mb-4">
+                <div class="card-header"><h5><i class="fas fa-truck me-2"></i>Informations de livraison</h5></div>
+                <div class="card-body">
+                  <form id="checkoutForm">
+                    <div class="row g-3">
+                      <div class="col-md-6"><label for="firstName" class="form-label">Prénom *</label><input type="text" class="form-control" id="firstName" required/></div>
+                      <div class="col-md-6"><label for="lastName" class="form-label">Nom *</label><input type="text" class="form-control" id="lastName" required/></div>
+                      <div class="col-12"><label for="email" class="form-label">Email *</label><input type="email" class="form-control" id="email" required/></div>
+                      <div class="col-12"><label for="phone" class="form-label">Téléphone *</label><input type="tel" class="form-control" id="phone" required/></div>
+                      <div class="col-12"><label for="address" class="form-label">Adresse *</label><input type="text" class="form-control" id="address" required/></div>
+                      <div class="col-md-6"><label for="city" class="form-label">Ville *</label><input type="text" class="form-control" id="city" required/></div>
+                      <div class="col-md-6"><label for="zipCode" class="form-label">Code postal *</label><input type="text" class="form-control" id="zipCode" required/></div>
+                    </div>
+                  </form>
+                </div>
+              </div>
+
+              <!-- Paiement -->
+              <div class="card mb-4">
+                <div class="card-header"><h5><i class="fas fa-credit-card me-2"></i>Informations de paiement</h5></div>
+                <div class="card-body">
+                  <div class="payment-methods mb-3">
+                    <div class="form-check">
+                      <input class="form-check-input" type="radio" name="paymentMethod" id="creditCard" value="credit" checked/>
+                      <label class="form-check-label" for="creditCard"><i class="fas fa-credit-card me-2"></i>Carte de crédit</label>
+                    </div>
+                    <div class="form-check">
+                      <input class="form-check-input" type="radio" name="paymentMethod" id="bankTransfer" value="transfer"/>
+                      <label class="form-check-label" for="bankTransfer"><i class="fas fa-university me-2"></i>Virement bancaire</label>
+                    </div>
+                  </div>
+
+                  <div id="creditCardForm">
+                    <div class="row g-3">
+                      <div class="col-12"><label for="cardNumber" class="form-label">Numéro de carte *</label><input type="text" class="form-control" id="cardNumber" placeholder="1234 5678 9012 3456" maxlength="19" required/></div>
+                      <div class="col-md-6"><label for="expiryDate" class="form-label">Date d'expiration *</label><input type="text" class="form-control" id="expiryDate" placeholder="MM/AA" maxlength="5" required/></div>
+                      <div class="col-md-6"><label for="cvv" class="form-label">CVV *</label><input type="text" class="form-control" id="cvv" placeholder="123" maxlength="3" required/></div>
+                      <div class="col-12"><label for="cardName" class="form-label">Nom sur la carte *</label><input type="text" class="form-control" id="cardName" required/></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+          <div class="col-lg-4">
+            <div class="order-summary">
+              <h4 class="mb-4">Résumé de la commande</h4>
+              <div id="orderSummary" class="order-items"><!-- JS --></div>
+              <hr />
+              <div class="order-total">
+                <div class="d-flex justify-content-between mb-2"><span>Sous-total:</span><span id="subtotal">0.00€</span></div>
+                <div class="d-flex justify-content-between mb-2"><span>Livraison:</span><span id="shipping">Gratuite</span></div>
+                <div class="d-flex justify-content-between mb-2"><span>TVA (20%):</span><span id="tax">0.00€</span></div>
+                <hr />
+                <div class="d-flex justify-content-between"><strong>Total:</strong><strong id="finalTotal">0.00€</strong></div>
+              </div>
+              <button class="btn btn-success btn-lg w-100 mt-4" onclick="processPayment()"><i class="fas fa-lock me-2"></i>Payer maintenant</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Modal Galerie -->
+  <div class="modal fade" id="imageModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="imageModalTitle">Galerie Produit</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <div id="imageCarousel" class="carousel slide" data-bs-ride="carousel">
+            <div class="carousel-inner" id="carouselImages"><!-- JS --></div>
+            <button class="carousel-control-prev" type="button" data-bs-target="#imageCarousel" data-bs-slide="prev"><span class="carousel-control-prev-icon"></span></button>
+            <button class="carousel-control-next" type="button" data-bs-target="#imageCarousel" data-bs-slide="next"><span class="carousel-control-next-icon"></span></button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Chat -->
+  <div class="chat-widget" id="chatWidget">
+    <div class="chat-header" onclick="toggleChat()">
+      <i class="fas fa-comments"></i><span>Support Client</span>
+      <div class="chat-status online"></div>
+    </div>
+    <div class="chat-body" id="chatBody">
+      <div class="chat-messages" id="chatMessages">
+        <div class="message bot-message">
+          <div class="message-content">
+            <p>Bonjour! Comment puis-je vous aider aujourd'hui?</p>
+            <span class="message-time">Maintenant</span>
+          </div>
+        </div>
+      </div>
+      <div class="chat-input">
+        <input type="text" id="chatInput" placeholder="Tapez votre message..." onkeypress="handleChatKeyPress(event)"/>
+        <button onclick="sendMessage()"><i class="fas fa-paper-plane"></i></button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer class="footer-section bg-dark text-white py-5">
+    <div class="container">
+      <div class="row g-4">
+        <div class="col-lg-4">
+          <div class="footer-brand">
+            <h4><i class="fas fa-tooth text-primary me-2"></i>DENTOLINK Digital Dental Lab</h4>
+            <p>Laboratoire dentaire numérique de référence à Madagascar depuis 2010.</p>
+            <div class="social-links">
+              <a href="#" class="social-link"><i class="fab fa-facebook"></i></a>
+              <a href="#" class="social-link"><i class="fab fa-instagram"></i></a>
+              <a href="#" class="social-link"><i class="fab fa-linkedin"></i></a>
+            </div>
+          </div>
+        </div>
+        <div class="col-lg-2">
+          <h5>Navigation</h5>
+          <ul class="footer-links">
+            <li><a href="#" onclick="showSection('accueil')">Accueil</a></li>
+            <li><a href="#" onclick="showSection('produits')">Produits</a></li>
+            <li><a href="#" onclick="showSection('apropos')">À propos</a></li>
+            <li><a href="#" onclick="showSection('contact')">Contact</a></li>
+          </ul>
+        </div>
+        <div class="col-lg-2">
+          <h5>Services</h5>
+          <ul class="footer-links">
+            <li><a href="#" onclick="showSection('consultation')">Conditions de vente</a></li>
+            <li><a href="#" onclick="showSection('orthodontie')">Evaluation commande</a></li>
+            <li><a href="#" onclick="showSection('implants')">Conditions de garantie</a></li>
+          </ul>
+        </div>
+        <div class="col-lg-4">
+          <h5><i class="fas fa-phone me-2"></i>Contactez-Nous</h5>
+          <div class="contact-info">
+            <p><i class="fas fa-map-marker-alt me-2"></i>Antananarivo, Madagascar</p>
+            <p><i class="fas fa-phone me-2"></i>+33 6 85 41 84 56</p>
+            <p><i class="fas fa-envelope me-2"></i>dentolink3@gmail.com</p>
+            <p><i class="fas fa-clock me-2"></i>Lun-Ven: 8h-17h, Sam: 8h-12h</p>
+            <div class="mt-3">
+              <button class="btn btn-primary btn-sm" onclick="showSection('contact')">
+                <i class="fas fa-calendar-check me-2"></i>Nous Contacter
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <hr class="my-4"/>
+      <div class="row">
+        <div class="col-12 text-center">
+          <p class="mb-0">&copy; 2024 DENTOLINK Digital Dental Lab Madagasikara. Tous droits réservés.</p>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Toast -->
+  <div class="toast-container position-fixed bottom-0 end-0 p-3">
+    <div id="notificationToast" class="toast" role="alert">
+      <div class="toast-header">
+        <i class="fas fa-check-circle text-success me-2"></i>
+        <strong class="me-auto">Notification</strong>
+        <button type="button" class="btn-close" data-bs-dismiss="toast"></button>
+      </div>
+      <div class="toast-body" id="toastMessage">Message de notification</div>
+    </div>
+  </div>
+
+  <!-- Google Translate -->
+<script type="text/javascript">
+  function googleTranslateElementInit() {
+    new google.translate.TranslateElement(
+      {
+        pageLanguage: 'fr',
+        includedLanguages: 'fr,en',
+        layout: google.translate.TranslateElement.InlineLayout.SIMPLE
+      },
+      'google_translate_element'
+    );
+  }
+
+  // Forcer le rechargement après que la page est rendue
+  document.addEventListener("DOMContentLoaded", function () {
+    if (typeof google !== "undefined" && google.translate) {
+      googleTranslateElementInit();
+    }
+  });
+</script>
+
+<script src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+
+
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>

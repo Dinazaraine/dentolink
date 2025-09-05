@@ -12,20 +12,25 @@ const getAuthHeaders = () => ({
 // Récupère toutes les commandes pour le dentiste (sans afficher le nom du client)
 export const getOrdersForDentist = async () => {
   const res = await axios.get(`${API_URL}/orders`, { headers: getAuthHeaders() });
-  // Supprimer le nom et prénom des clients
   return res.data.map(order => ({
     ...order,
-    client_name: undefined,  // ou order.client_name = null si nécessaire
-    client_firstname: undefined
+    client_name: undefined,
+    client_firstname: undefined,
+    // 🔹 Préparer les fichiers avec URLs complètes
+    files: (order.files || []).map(f => {
+      const url = f.url || "";
+      const fullUrl = url.startsWith("/uploads") ? `${API_ORIGIN}${url}` : url;
+      return { ...f, fullUrl };
+    })
   }));
 };
 
 // Mettre à jour le statut d'une commande (envoyer à l'admin)
-export const updateOrderStatus = async (orderId, status) => {
+export const updateOrderStatus = async (orderId, orderStatus) => {
   const token = localStorage.getItem("token");
   const res = await axios.put(
-    `${API_BASE}/orders/${orderId}/status`,
-    { status },
+    `${API_URL}/orders/${orderId}/status`,
+    { orderStatus },
     { headers: { Authorization: `Bearer ${token}` } }
   );
   return res.data;
@@ -45,12 +50,36 @@ export const uploadDentistFiles = async (orderId, files = []) => {
     },
   });
 
-  return res.data; // commande complète mise à jour
+  // 🔹 Retourner commande + fichiers avec URLs complètes
+  return {
+    ...res.data,
+    files: (res.data?.files || []).map(f => {
+      const url = f.url || "";
+      const fullUrl = url.startsWith("/uploads") ? `${API_ORIGIN}${url}` : url;
+      return { ...f, fullUrl };
+    })
+  };
 };
 
+// Déterminer l'origine API
+const API_ORIGIN = (() => {
+  try {
+    const u = new URL(API_URL);
+    return `${u.protocol}//${u.host}`;
+  } catch {
+    return window.location.origin;
+  }
+})();
 
 // Récupérer tous les fichiers d'une commande
 export const getOrderFiles = async (orderId) => {
-  const res = await axios.get(`${API_URL}/orders/${orderId}`, { headers: getAuthHeaders() });
-  return res.data.files || [];
+  const res = await axios.get(`${API_URL}/orders/${orderId}/files`, {
+    headers: getAuthHeaders(),
+  });
+
+  return (res.data || []).map(f => {
+    const url = f.url || "";
+    const fullUrl = url.startsWith("/uploads") ? `${API_ORIGIN}${url}` : url;
+    return { ...f, fullUrl };
+  });
 };
