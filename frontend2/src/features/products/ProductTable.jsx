@@ -2,7 +2,7 @@ import Card from "../../components/Card.jsx";
 import { useState } from "react";
 import "bootstrap/dist/css/bootstrap.min.css";
 
-// ✅ Importation des images locales pour Physique
+// ✅ Importation des images locales pour Physiquefs
 import physique1 from "./Physique/all.png";
 import physique2 from "./Physique/aligner.png";
 import physique3 from "./Physique/amovible.png";
