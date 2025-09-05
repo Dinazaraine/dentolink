@@ -31,9 +31,10 @@ const app = express();
 const server = http.createServer(app);
 
 /* --------------------------- CORS --------------------------- */
-const allowedOrigins = (process.env.CORS_ORIGIN ?? "http://localhost:5173,https://dentolink-5h6k.vercel.app")
-  .split(",")
-  .map((o) => o.trim());
+const allowedOrigins = [
+  "http://localhost:5173",              // ton frontend en local (vite)
+  "https://dentolink-t3vr.vercel.app"   // ton frontend en production sur Vercel
+];
 
 app.use(
   cors({
