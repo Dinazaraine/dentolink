@@ -20,16 +20,16 @@ import physique14 from "./Physique/tcs.png";
 import physique15 from "./Physique/zircone.png";
 
 // ✅ Importation des images locales pour Design
-import design0 from "./Design/0.png";
-import design1 from "./Design/1.png";
-import design2 from "./Design/2.png";
-import design3 from "./Design/3.png";
-import design4 from "./Design/4.png";
-import design5 from "./Design/5.png";
-import design6 from "./Design/6.png";
-import design7 from "./Design/7.png";
-import design8 from "./Design/8.png";
-import design9 from "./Design/9.png";
+import design0 from "./design/0.png";
+import design1 from "./design/1.png";
+import design2 from "./design/2.png";
+import design3 from "./design/3.png";
+import design4 from "./design/4.png";
+import design5 from "./design/5.png";
+import design6 from "./design/6.png";
+import design7 from "./design/7.png";
+import design8 from "./design/8.png";
+import design9 from "./design/9.png";
 
 export default function ProductForm() {
   const [category, setCategory] = useState(null);
