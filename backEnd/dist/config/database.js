@@ -3,23 +3,31 @@
 const dotenv = require("dotenv");
 dotenv.config();
 
-const mysql = require("mysql2"); // API callback (pas de /promise)
+const mysql = require("mysql2");
 
-/** Pool de connexions MySQL */
-const pool = mysql.createPool({
-  host: process.env.DB_HOST || "127.0.0.1",
-  port: Number(process.env.DB_PORT || 3306),
-  user: process.env.DB_USER || "root",
-  password: process.env.DB_PASSWORD || "",
-  database: process.env.DB_NAME || "",
-  waitForConnections: true,
-  connectionLimit: 10,
-  queueLimit: 0,
-});
+/** Création du pool depuis DATABASE_URL */
+let pool;
 
-/** Helper de requête (callbacks) */
+if (process.env.DATABASE_URL) {
+  const dbUrl = new URL(process.env.DATABASE_URL);
+
+  pool = mysql.createPool({
+    host: dbUrl.hostname,
+    port: dbUrl.port || 3306,
+    user: dbUrl.username,
+    password: dbUrl.password,
+    database: dbUrl.pathname.replace("/", ""), // enlève le "/" devant railway
+    waitForConnections: true,
+    connectionLimit: 10,
+    queueLimit: 0,
+  });
+} else {
+  console.error("[DB] ❌ Aucune variable DATABASE_URL trouvée !");
+  process.exit(1);
+}
+
+/** Helper query */
 function query(sql, params, cb) {
-  // Permet d’appeler query(sql, cb) sans params
   if (typeof params === "function") {
     cb = params;
     params = [];
@@ -30,19 +38,17 @@ function query(sql, params, cb) {
   });
 }
 
-/** Test de connexion au démarrage (optionnel) */
+/** Test de connexion */
 pool.getConnection(function (err, conn) {
   if (err) {
-    console.error("[DB] Échec de connexion MySQL :", err.message);
-    // En prod, tu peux stopper l'app :
-    // process.exit(1);
+    console.error("[DB] ❌ Échec de connexion MySQL :", err.message);
     return;
   }
   conn.ping(function (pingErr) {
     if (pingErr) {
-      console.error("[DB] Ping MySQL a échoué :", pingErr.message);
-    } else if (process.env.NODE_ENV === "development") {
-      console.log("[DB] Connexion MySQL OK");
+      console.error("[DB] ❌ Ping MySQL a échoué :", pingErr.message);
+    } else {
+      console.log("[DB] ✅ Connexion MySQL OK via DATABASE_URL");
     }
     conn.release();
   });
