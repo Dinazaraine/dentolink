@@ -35,7 +35,7 @@ const LandingPage = () => {
       <iframe
         id="dentolink-iframe"
         title="Dentolink Landing"
-        src="/dentolink/index.html"
+        src="../public/dentolink/index.html"
         style={{ width: '100%', height: '100%', border: 'none' }}
       />
     </div>
