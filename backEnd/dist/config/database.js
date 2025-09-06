@@ -5,17 +5,34 @@ dotenv.config();
 
 const mysql = require("mysql2"); // API callback (pas de /promise)
 
-/** Pool de connexions MySQL */
-const pool = mysql.createPool({
-  host: process.env.DB_HOST || "127.0.0.1",
-  port: Number(process.env.DB_PORT || 3306),
-  user: process.env.DB_USER || "root",
-  password: process.env.DB_PASSWORD || "",
-  database: process.env.DB_NAME || "",
-  waitForConnections: true,
-  connectionLimit: 10,
-  queueLimit: 0,
-});
+let pool;
+
+if (process.env.DATABASE_URL) {
+  const params = new url.URL(process.env.DATABASE_URL);
+
+  pool = mysql.createPool({
+    host: params.hostname,
+    port: params.port,
+    user: params.username,
+    password: params.password,
+    database: params.pathname.replace("/", ""),
+    waitForConnections: true,
+    connectionLimit: 10,
+    queueLimit: 0,
+  });
+} else {
+  // fallback en local
+  pool = mysql.createPool({
+    host: process.env.DB_HOST || "127.0.0.1",
+    port: Number(process.env.DB_PORT || 3306),
+    user: process.env.DB_USER || "root",
+    password: process.env.DB_PASSWORD || "",
+    database: process.env.DB_NAME || "",
+    waitForConnections: true,
+    connectionLimit: 10,
+    queueLimit: 0,
+  });
+}
 
 /** Helper de requête (callbacks) */
 function query(sql, params, cb) {
