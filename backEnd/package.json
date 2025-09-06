@@ -37,5 +37,9 @@
     "sequelize-cli": "^6.6.3",
     "ts-node": "^10.9.2",
     "typescript": "^5.9.2"
-  }
+  },
+  "engines": {
+  "node": "20.x"
+}
+
 }
