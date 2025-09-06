@@ -118,26 +118,26 @@ export default function NavBar() {
           {!isAdmin && !isDentist && token && (
             <>
               <li>
-                <NavLink to="/" className="nav-link text-white d-flex align-items-center">
+                <NavLink to="/app" className="nav-link text-white d-flex align-items-center">
                   <i className="bi bi-house-door me-2"></i>
                   {!collapsed && "Accueil"}
                 </NavLink>
               </li>
               <li>
-                <NavLink to="/products" className="nav-link text-white d-flex align-items-center">
+                <NavLink to="/app/products" className="nav-link text-white d-flex align-items-center">
                   <i className="bi bi-gear me-2"></i>
                   {!collapsed && "Produits"}
                 </NavLink>
               </li>
               <li>
-                <NavLink to="/OrderTable" className="nav-link text-white d-flex align-items-center">
+                <NavLink to="/app/OrderTable" className="nav-link text-white d-flex align-items-center">
                   <i className="bi bi-bag-check me-2"></i>
                   {!collapsed && "Liste Commandes"}
                 </NavLink>
               </li>
               
               <li>
-                <NavLink to="/orders" className="nav-link text-white d-flex align-items-center">
+                <NavLink to="/app/orders" className="nav-link text-white d-flex align-items-center">
                   <i className="bi bi-cart4 me-2"></i>
                   {!collapsed && "Crée Commandes"}
                 </NavLink>
@@ -149,19 +149,19 @@ export default function NavBar() {
           {isAdmin && (
             <>
               <li>
-                <NavLink to="/admin" className="nav-link text-white d-flex align-items-center">
+                <NavLink to="/app/admin" className="nav-link text-white d-flex align-items-center">
                   <i className="bi bi-speedometer2 me-2"></i>
                   {!collapsed && "Dashboard"}
                 </NavLink>
               </li>
               <li>
-                <NavLink to="/AdminUsersPage" className="nav-link text-white d-flex align-items-center">
+                <NavLink to="/app/AdminUsersPage" className="nav-link text-white d-flex align-items-center">
                   <i className="bi bi-people me-2"></i>
                   {!collapsed && "Utilisateurs"}
                 </NavLink>
               </li>
               <li>
-                <NavLink to="/admin/orders" className="nav-link text-white d-flex align-items-center">
+                <NavLink to="/app/admin/orders" className="nav-link text-white d-flex align-items-center">
                   <i className="bi bi-clipboard-check me-2"></i>
                   {!collapsed && "Commandes Admin"}
                 </NavLink>
@@ -173,19 +173,19 @@ export default function NavBar() {
           {isDentist && (
             <>
               <li>
-                <NavLink to="/dentiste" className="nav-link text-white d-flex align-items-center">
+                <NavLink to="/app/dentiste" className="nav-link text-white d-flex align-items-center">
                   <i className="bi bi-person-workspace me-2"></i>
                   {!collapsed && "Dashboard"}
                 </NavLink>
               </li>
               <li>
-                <NavLink to="/dentiste/orders" className="nav-link text-white d-flex align-items-center">
+                <NavLink to="/app/dentiste/orders" className="nav-link text-white d-flex align-items-center">
                   <i className="bi bi-list-check me-2"></i>
                   {!collapsed && "Commandes Dentiste"}
                 </NavLink>
               </li>
               <li>
-                <NavLink to="/dentiste/orders/:id/upload" className="nav-link text-white d-flex align-items-center">
+                <NavLink to="/app/dentiste/orders/:id/upload" className="nav-link text-white d-flex align-items-center">
                   <i className="bi bi-folder2-open me-2"></i>
                   {!collapsed && "Upload Fichiers"}
                 </NavLink>
