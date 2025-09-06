@@ -32,7 +32,7 @@ const server = http.createServer(app);
 
 const io = new Server(server, {
   cors: {
-    origin: "http://localhost:5173", // ton frontend en développement
+    origin: "http://localhost:5173", // domaine de développement
     methods: ["GET", "POST"],
     credentials: true,              // ⚠️ obligatoire si tu utilises withCredentials
   },
@@ -70,14 +70,13 @@ io.on("connection", (socket) => {
 });
 
 /* --------------------------- CORS --------------------------- */
-// On lit la variable d'environnement CORS_ORIGIN (liste séparée par des virgules),
-// ou à défaut on prend "http://localhost:5173"
+// Récupère les origines autorisées depuis CORS_ORIGIN, ou fallback sur localhost
 const allowedOrigins = (process.env.CORS_ORIGIN ?? "http://localhost:5173")
   .split(",")
   .map((o) => o.trim())
-  .filter((o) => o); // retire les vides éventuels
+  .filter((o) => o);
 
-// Ajout manuel du domaine Vercel s'il n'est pas déjà dans la liste
+// Ajoute manuellement votre domaine Vercel s'il n'est pas dans la liste
 const vercelDomain = "https://dentolink-qyyh.vercel.app";
 if (!allowedOrigins.includes(vercelDomain)) {
   allowedOrigins.push(vercelDomain);
@@ -145,7 +144,7 @@ app.use((_req, res) => res.status(404).json({ error: "Not Found" }));
 const PORT = Number(process.env.PORT) || 3000;
 
 function startServer() {
-  server.listen(PORT, () => { // ✅ server.listen au lieu de app.listen
+  server.listen(PORT, () => {
     console.log(`🚀 Server running on http://localhost:${PORT}`);
     console.log(`🌐 CORS allowed origins: ${allowedOrigins.join(", ")}`);
     console.log("⚡ Socket.IO prêt !");
@@ -196,4 +195,4 @@ process.on("uncaughtException", (err) =>
   console.error("UNCAUGHT EXCEPTION:", err)
 );
 
-module.exports = { app, io }; // ✅ on exporte aussi io si besoin ailleurs
+module.exports = { app, io };
