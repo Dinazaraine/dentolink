@@ -5,7 +5,7 @@ const dotenv = require("dotenv");
 const cors = require("cors");
 const helmet = require("helmet");
 const path = require("path");
-const http = require("http"); // ✅ nécessaire pour socket.io
+const http = require("http");         // ✅ nécessaire pour socket.io
 const { Server } = require("socket.io"); // ✅ socket.io
 
 dotenv.config();
@@ -32,9 +32,9 @@ const server = http.createServer(app);
 
 const io = new Server(server, {
   cors: {
-    origin: "http://localhost:5173", // ton frontend
+    origin: "http://localhost:5173", // ton frontend en développement
     methods: ["GET", "POST"],
-    credentials: true, // ⚠️ obligatoire si tu utilises withCredentials
+    credentials: true,              // ⚠️ obligatoire si tu utilises withCredentials
   },
 });
 
@@ -70,15 +70,23 @@ io.on("connection", (socket) => {
 });
 
 /* --------------------------- CORS --------------------------- */
+// On lit la variable d'environnement CORS_ORIGIN (liste séparée par des virgules),
+// ou à défaut on prend "http://localhost:5173"
 const allowedOrigins = (process.env.CORS_ORIGIN ?? "http://localhost:5173")
   .split(",")
-  .map((o) => o.trim());
+  .map((o) => o.trim())
+  .filter((o) => o); // retire les vides éventuels
+
+// Ajout manuel du domaine Vercel s'il n'est pas déjà dans la liste
+const vercelDomain = "https://dentolink-qyyh.vercel.app";
+if (!allowedOrigins.includes(vercelDomain)) {
+  allowedOrigins.push(vercelDomain);
+}
 
 app.use(
   cors({
     origin: allowedOrigins,
     methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
-      'https://dentolink-qyyh.vercel.app',
     allowedHeaders: ["Content-Type", "Authorization"],
     credentials: true,
   })
