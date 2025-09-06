@@ -33,7 +33,6 @@ const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
     origin: "http://localhost:5173", // ton frontend
-    'https://dentolink-qyyh.vercel.app',
     methods: ["GET", "POST"],
     credentials: true, // ⚠️ obligatoire si tu utilises withCredentials
   },
@@ -79,6 +78,7 @@ app.use(
   cors({
     origin: allowedOrigins,
     methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+      'https://dentolink-qyyh.vercel.app',
     allowedHeaders: ["Content-Type", "Authorization"],
     credentials: true,
   })
