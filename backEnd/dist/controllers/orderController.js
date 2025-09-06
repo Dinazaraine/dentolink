@@ -10,6 +10,7 @@ const iconv = require("iconv-lite");
 const nodemailer = require("nodemailer");
 
 // ✅ Config du transporteur
+// ✅ Config du transporteur
 const transporter = nodemailer.createTransport({
   host: "smtp.gmail.com",
   port: 465,
@@ -19,7 +20,7 @@ const transporter = nodemailer.createTransport({
     pass: process.env.EMAIL_PASS,
   },
 });
-transporter.verify((error, success) => {
+transporter.verify((error) => {
   if (error) {
     console.error("❌ Erreur connexion SMTP :", error);
   } else {
@@ -27,12 +28,20 @@ transporter.verify((error, success) => {
   }
 });
 
-// ✅ Corrige l’encodage UTF-8
-function normalizeFilename(name) {
+// ✅ Fonction utilitaire pour envoyer un email
+// ✅ Fonction utilitaire pour envoyer un email
+async function sendEmail(to, subject, html, attachments = []) {
   try {
-    return iconv.decode(Buffer.from(name, "latin1"), "utf8");
-  } catch {
-    return name;
+    await transporter.sendMail({
+      from: `"DentoLink Pro" <${process.env.EMAIL_USER}>`,
+      to,
+      subject,
+      html,
+      attachments, // ✅ permet d’envoyer des pièces jointes
+    });
+    console.log("📧 Email envoyé à", to);
+  } catch (err) {
+    console.error("❌ Erreur envoi email:", err.message);
   }
 }
 
@@ -103,8 +112,6 @@ const PRODUCT_PRICES = {
 // ------------------------ CRUD ------------------------
 
 // Créer une commande
-// controllers/orderController.js
-// controllers/orderController.js
 exports.createOrder = async (req, res) => {
   try {
     console.log("🟢 [createOrder] req.body:", req.body);
@@ -166,7 +173,7 @@ exports.createOrder = async (req, res) => {
       `,
       [
         authorUserId,
-        1, // ⚠️ dentistId par défaut (adapter si nécessaire)
+        1, // ⚠️ dentistId par défaut
         patient_name,
         patient_sex,
         Number(patient_age) || null,
@@ -190,18 +197,17 @@ exports.createOrder = async (req, res) => {
       }
 
       await queryAsync(
-  `INSERT INTO order_items (order_id, work_type, sub_type, price, upper_teeth, lower_teeth) 
-   VALUES (?, ?, ?, ?, ?, ?)`,
-  [
-    orderId,
-    wt,
-    st,
-    price,
-    JSON.stringify(w.upper_teeth || []),
-    JSON.stringify(w.lower_teeth || [])
-  ]
-);
-
+        `INSERT INTO order_items (order_id, work_type, sub_type, price, upper_teeth, lower_teeth) 
+         VALUES (?, ?, ?, ?, ?, ?)`,
+        [
+          orderId,
+          wt,
+          st,
+          price,
+          JSON.stringify(w.upper_teeth || []),
+          JSON.stringify(w.lower_teeth || []),
+        ]
+      );
     }
 
     // 🔹 Insertion des fichiers (order_files)
@@ -225,12 +231,159 @@ exports.createOrder = async (req, res) => {
       }
     }
 
-    res.status(201).json({ id: orderId, message: "Commande créée avec succès" });
+    // 🔹 Récup infos pour email
+    const [userRows, items, files] = await Promise.all([
+      queryAsync("SELECT * FROM users WHERE id = ?", [authorUserId]),
+      queryAsync("SELECT * FROM order_items WHERE order_id = ?", [orderId]),
+      queryAsync("SELECT * FROM order_files WHERE order_id = ?", [orderId]),
+    ]);
+
+    const user = userRows[0] || {};
+
+    // ✅ Construire le tableau des travaux
+    let worksRows = items
+      .map((it) => {
+        const upper = JSON.parse(it.upper_teeth || "[]").join(", ") || "-";
+        const lower = JSON.parse(it.lower_teeth || "[]").join(", ") || "-";
+        return `
+        <tr>
+          <td style="border:1px solid #ddd;padding:8px;">${it.work_type}</td>
+          <td style="border:1px solid #ddd;padding:8px;">${it.sub_type || "-"}</td>
+          <td style="border:1px solid #ddd;padding:8px;">${upper}</td>
+          <td style="border:1px solid #ddd;padding:8px;">${lower}</td>
+          <td style="border:1px solid #ddd;padding:8px;text-align:right;">${Number(
+            it.price || 0
+          ).toFixed(2)} €</td>
+        </tr>`;
+      })
+      .join("");
+
+    // ✅ Construire la liste des fichiers (liens de téléchargement)
+    const API_BASE = process.env.API_URL || "http://localhost:3000";
+    let fileLis =
+      files.length > 0
+        ? files
+            .map(
+              (f) =>
+                `<li><a href="${API_BASE}${f.url}" target="_blank">${f.originalName}</a> (${Math.round(
+                  f.size / 1024
+                )} Ko)</li>`
+            )
+            .join("")
+        : "<li>Aucun fichier joint</li>";
+
+    // ✅ Email complet (dentolink)
+    const emailHtmlDentolink = `
+      <div style="font-family:Arial,sans-serif;font-size:14px;color:#333;">
+        <h2 style="color:#1E3A8A;">Nouvelle commande #${orderId}</h2>
+
+        <h3>👤 Patient</h3>
+        <p>
+          <b>Nom :</b> ${patient_name}<br/>
+          <b>Sexe :</b> ${patient_sex}<br/>
+          <b>Âge :</b> ${patient_age}<br/>
+          <b>Modèle :</b> ${model || "-"}<br/>
+          <b>Remarque :</b> ${remark || "-"}
+        </p>
+
+        <h3>🏢 Client</h3>
+        <p>
+          <b>Société :</b> ${user.companyName || "-"}<br/>
+          <b>Email :</b> ${user.email || "-"}<br/>
+          <b>Téléphone fixe :</b> ${user.phone_fixed || "-"}<br/>
+          <b>Téléphone mobile :</b> ${user.phone_mobile || "-"}<br/>
+          <b>Adresse :</b> ${user.address || "-"}, ${user.zipcode || ""} ${user.city || ""}, ${user.country || ""}
+        </p>
+
+        <h3>🛠 Travaux</h3>
+        <table style="border-collapse:collapse;width:100%;margin-bottom:15px;">
+          <thead>
+            <tr style="background:#1E3A8A;color:white;">
+              <th style="border:1px solid #ddd;padding:8px;">Type</th>
+              <th style="border:1px solid #ddd;padding:8px;">Sous-type</th>
+              <th style="border:1px solid #ddd;padding:8px;">Dents Haut</th>
+              <th style="border:1px solid #ddd;padding:8px;">Dents Bas</th>
+              <th style="border:1px solid #ddd;padding:8px;text-align:right;">Prix (€)</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${worksRows}
+          </tbody>
+        </table>
+
+        <h3>📂 Fichiers (cliquez pour télécharger)</h3>
+        <ul>${fileLis}</ul>
+
+        <h3>💰 Total</h3>
+        <p style="font-size:16px;font-weight:bold;color:#16A34A;">${total.toFixed(
+          2
+        )} €</p>
+      </div>
+    `;
+
+    // ✅ Email simplifié (sundev) → sans bloc Client
+    const emailHtmlSundev = `
+      <div style="font-family:Arial,sans-serif;font-size:14px;color:#333;">
+        <h2 style="color:#1E3A8A;">Nouvelle commande #${orderId}</h2>
+
+        <h3>👤 Patient</h3>
+        <p>
+          <b>Nom :</b> ${patient_name}<br/>
+          <b>Sexe :</b> ${patient_sex}<br/>
+          <b>Âge :</b> ${patient_age}<br/>
+          <b>Modèle :</b> ${model || "-"}<br/>
+          <b>Remarque :</b> ${remark || "-"}
+        </p>
+
+        <h3>🛠 Travaux</h3>
+        <table style="border-collapse:collapse;width:100%;margin-bottom:15px;">
+          <thead>
+            <tr style="background:#1E3A8A;color:white;">
+              <th style="border:1px solid #ddd;padding:8px;">Type</th>
+              <th style="border:1px solid #ddd;padding:8px;">Sous-type</th>
+              <th style="border:1px solid #ddd;padding:8px;">Dents Haut</th>
+              <th style="border:1px solid #ddd;padding:8px;">Dents Bas</th>
+              <th style="border:1px solid #ddd;padding:8px;text-align:right;">Prix (€)</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${worksRows}
+          </tbody>
+        </table>
+
+        <h3>📂 Fichiers (cliquez pour télécharger)</h3>
+        <ul>${fileLis}</ul>
+
+        <h3>💰 Total</h3>
+        <p style="font-size:16px;font-weight:bold;color:#16A34A;">${total.toFixed(
+          2
+        )} €</p>
+      </div>
+    `;
+
+    // 🔹 Envoi email complet (dentolink)
+    await sendEmail(
+      "dentolink3@gmail.com",
+      `Nouvelle commande #${orderId}`,
+      emailHtmlDentolink
+    );
+
+    // 🔹 Envoi email simplifié (sundev)
+    await sendEmail(
+      "dentallabmg@gmail.com",
+      `Nouvelle commande #${orderId}`,
+      emailHtmlSundev
+    );
+
+    res
+      .status(201)
+      .json({ id: orderId, message: "Commande créée avec succès" });
   } catch (err) {
     console.error("[createOrder] error:", err);
     res.status(500).json({ error: "Erreur interne du serveur" });
   }
 };
+
 
 
 
@@ -566,77 +719,105 @@ exports.deleteOrder = async (req, res) => {
 // ------------------------ Webhook Stripe ------------------------
 // ------------------------ Webhook Stripe ------------------------
 // ------------------------ Webhook Stripe ------------------------
+// controllers/orderController.js
 exports.handleStripeWebhook = async (req, res) => {
   const sig = req.headers["stripe-signature"];
   const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET;
 
   let event;
   try {
-    // ⚠️ Stripe nécessite le body brut (middleware express.raw)
+    // ⚠️ Nécessite app.post('/api/orders/webhook', express.raw({ type: 'application/json' }), ...)
     event = stripe.webhooks.constructEvent(req.body, sig, endpointSecret);
   } catch (err) {
     console.error("❌ Erreur signature webhook Stripe:", err.message);
     return res.status(400).send(`Webhook Error: ${err.message}`);
   }
 
-  // ✅ On ne traite que les paiements réussis
   if (event.type === "checkout.session.completed") {
     const session = event.data.object;
-    const paymentIntentId = session.payment_intent || session.id;
 
-    // 🔹 Devise & montant
-    const ZERO_DECIMAL = new Set(["JPY", "KRW", "VND", "MGA"]);
+    // Devise (pour enregistrement payments)
     const currency = (session.currency || "eur").toUpperCase();
-    const amount = ZERO_DECIMAL.has(currency)
-      ? Number(session.amount_total)
-      : Number(session.amount_total) / 100;
 
     try {
+      // --- Paiement d'UNE commande ---
       if (session.metadata?.orderId) {
-        // ✅ Cas 1 : paiement d'une seule commande
         const orderId = session.metadata.orderId;
 
+        // Total de la commande basé sur la DB (somme des items)
+        const rows = await queryAsync(
+          `SELECT SUM(price) AS total FROM order_items WHERE order_id = ?`,
+          [orderId]
+        );
+        const amount = Number(rows?.[0]?.total || 0);
+
         await queryAsync(
-          `UPDATE orders 
-           SET paymentStatus = 'paye', 
-               paymentMethod = 'stripe', 
-               transactionRef = ?, 
-               updatedAt = NOW() 
+          `UPDATE orders
+             SET paymentStatus = 'paye',
+                 paymentMethod = 'stripe',
+                 transactionRef = ?,
+                 updatedAt = NOW()
            WHERE id = ?`,
-          [paymentIntentId, orderId]
+          [session.payment_intent || session.id, orderId]
         );
 
         await queryAsync(
-          `INSERT INTO payments (orderId, stripePaymentId, amount, currency, status) 
-           VALUES (?, ?, ?, ?, ?)`,
-          [orderId, paymentIntentId, amount, currency, "success"]
-        );
+  `INSERT INTO payments (orderId, stripePaymentId, amount, currency, status, createdAt, updatedAt)
+   VALUES (?, ?, ?, ?, ?, NOW(), NOW())
+   ON DUPLICATE KEY UPDATE 
+     status = VALUES(status),
+     updatedAt = NOW()`,
+  [orderId, paymentIntentId, amount, currency, "success"]
+);
 
-        console.log(`✅ Paiement confirmé pour commande #${orderId} (montant: ${amount} ${currency})`);
+
+        console.log(`✅ Paiement confirmé (single) #${orderId} – total DB: ${amount.toFixed(2)} ${currency}`);
       }
 
+      // --- Paiement MULTIPLE ---
       if (session.metadata?.orderIds) {
-        // ✅ Cas 2 : paiement groupé
-        const orderIds = session.metadata.orderIds.split(",").map((id) => id.trim());
+        const orderIds = session.metadata.orderIds
+          .split(",")
+          .map((s) => s.trim())
+          .filter(Boolean);
 
-        for (const orderId of orderIds) {
-          await queryAsync(
-            `UPDATE orders 
-             SET paymentStatus = 'paye', 
-                 paymentMethod = 'stripe', 
-                 transactionRef = ?, 
-                 updatedAt = NOW() 
-             WHERE id = ?`,
-            [paymentIntentId, orderId]
+        if (orderIds.length) {
+          const placeholders = orderIds.map(() => "?").join(",");
+          // Totaux par commande depuis DB
+          const totals = await queryAsync(
+            `SELECT order_id, SUM(price) AS total
+               FROM order_items
+              WHERE order_id IN (${placeholders})
+              GROUP BY order_id`,
+            orderIds
           );
 
-          await queryAsync(
-            `INSERT INTO payments (orderId, stripePaymentId, amount, currency, status) 
-             VALUES (?, ?, ?, ?, ?)`,
-            [orderId, paymentIntentId, amount, currency, "success"]
+          // Indexer par order_id
+          const totalByOrder = new Map(
+            totals.map((r) => [String(r.order_id), Number(r.total || 0)])
           );
 
-          console.log(`✅ Paiement confirmé (multiple) pour commande #${orderId} (montant: ${amount} ${currency})`);
+          for (const orderId of orderIds) {
+            const amount = totalByOrder.get(String(orderId)) || 0;
+
+            await queryAsync(
+              `UPDATE orders
+                 SET paymentStatus = 'paye',
+                     paymentMethod = 'stripe',
+                     transactionRef = ?,
+                     updatedAt = NOW()
+               WHERE id = ?`,
+              [session.payment_intent || session.id, orderId]
+            );
+
+            await queryAsync(
+              `INSERT INTO payments (orderId, stripePaymentId, amount, currency, status)
+               VALUES (?, ?, ?, ?, ?)`,
+              [orderId, session.payment_intent || session.id, amount, currency, "success"]
+            );
+
+            console.log(`✅ Paiement confirmé (multiple) #${orderId} – total DB: ${amount.toFixed(2)} ${currency}`);
+          }
         }
       }
     } catch (err) {
@@ -695,12 +876,14 @@ const files = await queryAsync("SELECT * FROM order_files WHERE order_id = ?", [
 };
 // Mettre à jour une commande (statut, patient, etc.)
 // controllers/orderController.js
+// Mettre à jour une commande (statut, paiement, etc.)
 exports.updateOrderStatus = async (req, res) => {
   try {
     const { id } = req.params;
-    const { orderStatus } = req.body;
-    if (!orderStatus) {
-      return res.status(400).json({ error: "orderStatus manquant" });
+    const { orderStatus, paymentStatus } = req.body;
+
+    if (!orderStatus && !paymentStatus) {
+      return res.status(400).json({ error: "orderStatus ou paymentStatus manquant" });
     }
 
     // Vérifier que la commande existe
@@ -708,30 +891,57 @@ exports.updateOrderStatus = async (req, res) => {
     if (!orders.length) {
       return res.status(404).json({ error: "Commande introuvable" });
     }
+    const currentOrder = orders[0];
 
-    // Tenter de mettre à jour les champs status et orderStatus ; si orderStatus n’existe pas, fallback
-    try {
-      await queryAsync(
-  "UPDATE orders SET orderStatus = ?, updatedAt = NOW() WHERE id = ?",
-  [orderStatus, id]
-);
+    // 🔹 Mise à jour DB
+    const updateParts = [];
+    const params = [];
 
-    } catch (err) {
+    if (orderStatus) {
+      updateParts.push("orderStatus = ?");
+      params.push(orderStatus);
+    }
+    if (paymentStatus) {
+      updateParts.push("paymentStatus = ?");
+      params.push(paymentStatus);
+    }
+
+    if (updateParts.length) {
+      updateParts.push("updatedAt = NOW()");
       await queryAsync(
-        "UPDATE orders SET orderStatus = ?, updatedAt = NOW() WHERE id = ?",
-        [orderStatus, id]
+        `UPDATE orders SET ${updateParts.join(", ")} WHERE id = ?`,
+        [...params, id]
       );
     }
 
-    // Renvoyer la commande mise à jour avec ses fichiers
+    // 🔹 Récupérer commande mise à jour
     const [updatedOrders, fileRows] = await Promise.all([
-  queryAsync("SELECT * FROM orders WHERE id = ?", [id]),
-  queryAsync("SELECT * FROM order_files WHERE order_id = ?", [id]), // ✅
-]);
+      queryAsync("SELECT * FROM orders WHERE id = ?", [id]),
+      queryAsync("SELECT * FROM order_files WHERE order_id = ?", [id]),
+    ]);
     const updatedOrder = updatedOrders[0];
     updatedOrder.files = fileRows || [];
-    updatedOrder.status = orderStatus;
-    updatedOrder.orderStatus = orderStatus;
+
+    // ✅ Envoi email si statut important
+    if (orderStatus === "en_cours") {
+      const subject = `Commande #${id} en cours`;
+      const html = `<h3>Commande en cours</h3>
+         <p>La commande <b>#${id}</b> est passée en statut <b>en_cours</b>.</p>
+         <p>Patient : ${currentOrder.patient_name || "N/A"}</p>`;
+
+      await sendEmail("dentolink3@gmail.com", subject, html);
+      await sendEmail("dentallabmg@gmail.com", subject, html);
+    }
+
+    if (paymentStatus === "paye") {
+      const subject = `Commande #${id} payée`;
+      const html = `<h3>Paiement reçu</h3>
+         <p>La commande <b>#${id}</b> a été marquée comme <b>payée</b>.</p>
+         <p>Montant total : ${currentOrder.total || 0} €</p>`;
+
+      await sendEmail("dentolink3@gmail.com", subject, html);
+      await sendEmail("dentallabmg@gmail.com", subject, html);
+    }
 
     return res.json({
       message: "Commande mise à jour",
@@ -744,6 +954,8 @@ exports.updateOrderStatus = async (req, res) => {
 };
 
 // ------------------------ Génération de facture PDF ------------------------
+const { PassThrough } = require("stream");
+
 exports.generateInvoiceMultiple = async (req, res) => {
   try {
     const ids = req.query.ids ? req.query.ids.split(",") : [];
@@ -753,173 +965,228 @@ exports.generateInvoiceMultiple = async (req, res) => {
 
     const placeholders = ids.map(() => "?").join(",");
 
-    // 🔹 Récupérer commandes + infos user
+    // 🔹 Commandes + infos utilisateur
     const orders = await queryAsync(
       `SELECT o.*, 
-              u.companyName, u.email AS user_email, u.phone_fixed, u.phone_mobile,
+              u.id AS u_id, u.companyName, u.email AS user_email, u.phone_fixed, u.phone_mobile,
               u.siret, u.address, u.zipcode, u.city, u.country
        FROM orders o
        JOIN users u ON o.userId = u.id
        WHERE o.id IN (${placeholders})`,
       ids
     );
-
-    if (!orders || orders.length === 0) {
+    if (!orders.length) {
       return res.status(404).json({ error: "Commandes introuvables." });
     }
 
+    // 🔹 Items
     const items = await queryAsync(
       `SELECT * FROM order_items WHERE order_id IN (${placeholders})`,
       ids
     );
 
+    // === PARAMS TVA ===
+    const VAT_RATE = 0.20; // 20%
+    const to2 = (n) => Number(n || 0).toFixed(2);
+
+    // -------------------------------
+    // 1) Création du PDF (double pipe: HTTP + email)
+    // -------------------------------
     const doc = new PDFDocument({ margin: 50, size: "A4" });
+
+    // → HTTP
     res.setHeader("Content-Type", "application/pdf");
     res.setHeader("Content-Disposition", "inline; filename=facture-multiple.pdf");
     doc.pipe(res);
 
+    // → Email
+    const emailStream = new PassThrough();
+    const chunks = [];
+    emailStream.on("data", (c) => chunks.push(c));
+    emailStream.on("end", async () => {
+      const pdfBuffer = Buffer.concat(chunks);
+
+      // Clients uniques (par userId)
+      const uniqueClientsMap = new Map();
+      for (const o of orders) {
+        uniqueClientsMap.set(o.u_id, {
+          companyName: o.companyName || "-",
+          email: o.user_email || "-",
+          phone: o.phone_fixed || o.phone_mobile || "-",
+          siret: o.siret || "-",
+          address: `${o.address || "-"}, ${o.zipcode || ""} ${o.city || ""}, ${o.country || ""}`.replace(/\s+/g," ").trim()
+        });
+      }
+      const uniqueClients = Array.from(uniqueClientsMap.values());
+
+      const clientsHtml = uniqueClients
+        .map(
+          (c) => `
+            <li>
+              <b>${c.companyName}</b><br/>
+              Email: ${c.email}<br/>
+              Tél: ${c.phone}<br/>
+              SIRET: ${c.siret}<br/>
+              Adresse: ${c.address}
+            </li>`
+        )
+        .join("");
+
+      const emailHtml = `
+        <div style="font-family:Arial,sans-serif;font-size:14px;color:#333;">
+          <h2 style="color:#1E3A8A;margin:0 0 6px;">Facture multiple générée</h2>
+          <p style="margin:0 0 12px;">Commandes: ${ids.join(", ")}</p>
+          <h3 style="margin:12px 0 6px;">Clients</h3>
+          <ul>${clientsHtml}</ul>
+        </div>`;
+
+      try {
+        await sendEmail(
+          "dentolink3@gmail.com",
+          "Nouvelle facture générée",
+          emailHtml,
+          [{ filename: "facture-multiple.pdf", content: pdfBuffer }]
+        );
+        console.log("📧 Facture envoyée à dentolink3@gmail.com");
+      } catch (err) {
+        console.error("❌ Erreur envoi facture email:", err.message);
+      }
+    });
+    doc.pipe(emailStream);
+
     // ==========================
-    //   HEADER
+    //   CONTENU FACTURE (PDF)
     // ==========================
-    try {
-      doc.image("Dentolink.png", 50, 40, { width: 100 });
-    } catch {
-      doc.fontSize(16).fillColor("red").text("DENTOLINK", 50, 60);
-    }
 
-    // Titre centré
-    doc.fontSize(20).fillColor("#1E3A8A").text("FACTURE", 0, 40, { align: "center" });
-    doc.moveDown(2);
-
-    // ==========================
-    //   BLOCS FOURNISSEUR / CLIENT
-    // ==========================
-    const yStart = doc.y;
-
-    // Fournisseur (à gauche)
-    doc.fontSize(11).fillColor("#000").text("FOURNISSEUR :", 50, yStart);
-    doc.fontSize(10).fillColor("#333");
-    doc.text("DentoLink Digital Dental Lab", 50, yStart + 15);
-    doc.text("Adresse: Niort, France / Antananarivo, Madagascar", 50);
-    doc.text("Email: dentolink3@gmail.com", 50);
-    doc.text("TVA intracom: FRXX999999999", 50);
-    doc.text("SIRET: 123 456 789 00012", 50);
-
-    // Client (à droite) → on prend le client de la première commande
-    const client = orders[0];
-    const xRight = 320;
-    doc.fontSize(11).fillColor("#000").text("CLIENT :", xRight, yStart);
-    doc.fontSize(10).fillColor("#333");
-    doc.text(client.companyName || "N/A", xRight, yStart + 15);
-    doc.text(`Email: ${client.user_email || "-"}`, xRight);
-    if (client.phone_fixed) doc.text(`Tél (fixe): ${client.phone_fixed}`, xRight);
-    if (client.phone_mobile) doc.text(`Tél (mobile): ${client.phone_mobile}`, xRight);
-    if (client.siret) doc.text(`SIRET: ${client.siret}`, xRight);
-    doc.text(
-      `Adresse: ${client.address}, ${client.zipcode} ${client.city}, ${client.country}`,
-      xRight,
-      doc.y + 5,
-      { width: 220 }
-    );
-
+    // --- Logo ou fallback texte ---
+ try {
+  const logoPath = path.join(__dirname, "Dentolink.png"); // 🔹 chemin absolu
+  doc.image(logoPath, 50, 40, { width: 100 });
+} catch (err) {
+  console.error("⚠️ Impossible de charger le logo:", err.message);
+  doc.fontSize(18).fillColor("red").text("DENTOLINK", 50, 60);
+}
     doc.moveDown(3);
 
-    let grandTotal = 0;
+    // --- Fournisseur (gauche) ---
+    const yStart = 120;
+    doc.font("Helvetica-Bold").fillColor("#000").text("FOURNISSEUR :", 50, yStart);
+    doc.font("Helvetica").fontSize(10).fillColor("#333").text(
+      `DentoLink Digital Dental Lab
+Adresse: Niort, France / Antananarivo, Madagascar
+Email: dentolink3@gmail.com
+TVA intracom: FRXX999999999
+SIRET: 123 456 789 00012`,
+      50,
+      yStart + 15,
+      { width: 250 }
+    );
 
-    // ==========================
-    //   DÉTAILS COMMANDES
-    // ==========================
+    // --- Client de référence (première commande) à droite ---
+    const client = orders[0];
+    const xRight = 350;
+    doc.font("Helvetica-Bold").fillColor("#000").text("CLIENT :", xRight, yStart);
+    doc.font("Helvetica").fontSize(10).fillColor("#333").text(
+      `${client.companyName || "N/A"}
+Email: ${client.user_email || "-"}
+Tél (fixe): ${client.phone_fixed || "-"}
+SIRET: ${client.siret || "-"}
+Adresse: ${client.address || "-"}, ${client.zipcode || ""} ${client.city || ""}, ${client.country || ""}`,
+      xRight,
+      yStart + 15,
+      { width: 200 }
+    );
+
+    doc.moveDown(4);
+
+    // Totaux globaux (HT / TVA / TTC)
+    let totalHTGlobal = 0;
+    let totalTVAGlobal = 0;
+    let totalTTCGlobal = 0;
+
+    // === Pour chaque commande ===
     for (const order of orders) {
-      const orderItems = (items || []).filter((it) => it.order_id === order.id);
-      const total = orderItems.reduce((sum, it) => sum + (parseFloat(it.price) || 0), 0);
-      grandTotal += total;
+      const orderItems = items.filter((it) => it.order_id === order.id);
 
-      // --- Infos commande à droite ---
-      doc
-        .fontSize(12)
-        .fillColor("#333")
-        .text(`Commande #${order.id}`, 300, doc.y, { align: "right" });
-      doc.fontSize(10).text(`Patient: ${order.patient_name || "N/A"}`, { align: "right" });
-      doc.text(
-        `Âge: ${order.patient_age || "-"} | Sexe: ${order.patient_sex || "-"}`,
-        { align: "right" }
-      );
-      doc.text(`Statut commande: ${order.orderStatus || "-"}`, { align: "right" });
-      doc.text(`Statut paiement: ${order.paymentStatus || "-"}`, { align: "right" });
-      doc.moveDown(1);
+      doc.moveDown(1.5);
+      doc.font("Helvetica-Bold").fontSize(12).fillColor("#000").text(`Commande #${order.id}`, 50);
+      doc.font("Helvetica").fontSize(10).fillColor("#333")
+        .text(`Patient: ${order.patient_name || "-"} | Âge: ${order.patient_age || "-"} | Sexe: ${order.patient_sex || "-"}`)
+        .text(`Statut commande: ${order.orderStatus || "-"}`)
+        .text(`Statut paiement: ${order.paymentStatus || "-"}`);
+      doc.moveDown(0.8);
 
-      // --- Tableau travaux ---
-      if (orderItems.length > 0) {
-        doc.moveDown(1);
+      // En-têtes tableau
+      let y = doc.y + 4;
+      doc.font("Helvetica-Bold").fontSize(10).fillColor("#000");
+      doc.text("Libellé", 50, y);
+      doc.text("Qté", 250, y, { width: 40, align: "right" });
+      doc.text("PU HT", 300, y, { width: 60, align: "right" });
+      doc.text("TVA", 365, y, { width: 60, align: "right" });
+      doc.text("PU TTC", 430, y, { width: 60, align: "right" });
+      doc.text("Total TTC", 500, y, { width: 70, align: "right" });
+      y += 18;
 
-        const startY = doc.y;
-        doc.font("Helvetica-Bold").fontSize(11);
-        doc.text("Libellé", 50, startY);
-        doc.text("Qté", 250, startY);
-        doc.text("Prix U.", 320, startY);
-        doc.text("Total", 420, startY);
+      doc.font("Helvetica").fontSize(10).fillColor("#333");
 
-        doc.moveDown(0.5);
-        doc.font("Helvetica").fontSize(10);
+      let totalOrderTTC = 0;
+      let totalOrderHT = 0;
+      let totalOrderTVA = 0;
 
-        orderItems.forEach((it) => {
-          const qty = it.quantity || 1;
-          const unit = parseFloat(it.price) || 0;
-          const lineTotal = qty * unit;
+      orderItems.forEach((it) => {
+        const qty = Number(it.quantity || 1);
+        const unitTTC = Number(it.price || 0);            // prix en base = TTC
+        const unitHT  = unitTTC / (1 + VAT_RATE);
+        const unitTVA = unitTTC - unitHT;
 
-          const y = doc.y;
-          doc.text(`${it.work_type} – ${it.sub_type || "N/A"}`, 50, y);
-          doc.text(qty.toString(), 250, y);
-          doc.text(`${unit.toFixed(2)} €`, 320, y);
-          doc.text(`${lineTotal.toFixed(2)} €`, 420, y);
-        });
+        const lineTTC = unitTTC * qty;
+        const lineHT  = unitHT * qty;
+        const lineTVA = unitTVA * qty;
 
-        doc.moveDown(0.7);
-        doc.font("Helvetica-Bold").text(`Sous-total: ${total.toFixed(2)} €`, {
-          align: "right",
-        });
-        doc.font("Helvetica");
-      } else {
-        doc.text("Aucun travail associé.");
-      }
+        totalOrderTTC += lineTTC;
+        totalOrderHT  += lineHT;
+        totalOrderTVA += lineTVA;
 
-      doc.moveDown(1);
-      doc.moveTo(50, doc.y).lineTo(550, doc.y).stroke();
-      doc.moveDown(1);
-    }
-
-    // ==========================
-    //   RÉSUMÉ GLOBAL
-    // ==========================
-    const TVA_RATE = 0.20;
-    const tva = grandTotal * TVA_RATE;
-    const totalTTC = grandTotal + tva;
-
-    doc.moveDown(2);
-    doc.fontSize(12).fillColor("#000");
-    doc.text(`Sous-total global: ${grandTotal.toFixed(2)} €`, { align: "right" });
-    doc.text(`TVA (20%): ${tva.toFixed(2)} €`, { align: "right" });
-    doc
-      .fontSize(14)
-      .fillColor("#1E3A8A")
-      .text(`TOTAL TTC: ${totalTTC.toFixed(2)} €`, {
-        align: "right",
-        underline: true,
+        doc.text(`${it.work_type} – ${it.sub_type || "-"}`, 50, y, { width: 190 });
+        doc.text(qty.toString(), 250, y, { width: 40, align: "right" });
+        doc.text(`${to2(unitHT)} €`, 300, y, { width: 60, align: "right" });
+        doc.text(`${to2(unitTVA)} €`, 365, y, { width: 60, align: "right" });
+        doc.text(`${to2(unitTTC)} €`, 430, y, { width: 60, align: "right" });
+        doc.text(`${to2(lineTTC)} €`, 500, y, { width: 70, align: "right" });
+        y += 18;
       });
 
-    // ==========================
-    //   PIED DE PAGE
-    // ==========================
+      totalHTGlobal  += totalOrderHT;
+      totalTVAGlobal += totalOrderTVA;
+      totalTTCGlobal += totalOrderTTC;
+
+      doc.moveDown(0.6);
+      doc.font("Helvetica-Bold").fillColor("#000");
+      doc.text(`Sous-total HT: ${to2(totalOrderHT)} €`, 400, y, { width: 170, align: "right" });
+      doc.text(`TVA: ${to2(totalOrderTVA)} €`, 400, doc.y, { width: 170, align: "right" });
+      doc.text(`Sous-total TTC: ${to2(totalOrderTTC)} €`, 400, doc.y, { width: 170, align: "right" });
+      doc.font("Helvetica").fillColor("#333");
+      doc.moveDown(1.2);
+
+      doc.moveTo(50, doc.y).lineTo(550, doc.y).strokeColor("#CCC").stroke();
+      doc.moveDown(0.8);
+    }
+
+    // ===== Résumé global =====
     doc.moveDown(2);
-    doc.fontSize(9).fillColor("gray").text("Conditions de paiement: 30 jours nets.");
-    doc.text("IBAN: FR76 3000 4000 5000 6000 7000 890");
-    doc.text("BIC: BNPAFRPPXXX");
-    doc.text("Cette facture est conforme aux normes fiscales européennes.");
+    doc.font("Helvetica-Bold").fontSize(12).fillColor("#000")
+      .text(`TOTAL HT global: ${to2(totalHTGlobal)} €`, 380, doc.y, { width: 190, align: "right" })
+      .text(`TOTAL TVA: ${to2(totalTVAGlobal)} €`, 380, doc.y, { width: 190, align: "right" });
+    doc.fillColor("#1E3A8A").fontSize(14)
+      .text(`TOTAL TTC global: ${to2(totalTTCGlobal)} €`, 380, doc.y, { width: 190, align: "right", underline: true });
+
+    // Pied de page
     doc.moveDown(2);
-    doc
-      .fontSize(10)
-      .fillColor("black")
-      .text("Merci de votre confiance ", { align: "center" });
+    doc.font("Helvetica").fontSize(9).fillColor("#666")
+      .text("Conditions de paiement: 30 jours nets.")
+      .text("IBAN: FR76 3000 4000 5000 6000 7000 890  —  BIC: BNPAFRPPXXX")
+      .text("Cette facture est conforme aux normes fiscales européennes.");
+    doc.moveDown(1).fontSize(10).fillColor("#000").text("Merci de votre confiance.", { align: "center" });
 
     doc.end();
   } catch (err) {
@@ -927,6 +1194,7 @@ exports.generateInvoiceMultiple = async (req, res) => {
     res.status(500).json({ error: "Impossible de générer la facture multiple." });
   }
 };
+
 
 
 // ------------------------ Génération de facture PDF avec logo et design ------------------------
@@ -1226,6 +1494,7 @@ exports.getConversations = async (req, res) => {
   }
 };
 // controllers/orderController.js
+// controllers/orderController.js
 exports.payMultipleOrders = async (req, res) => {
   try {
     const { orderIds } = req.body;
@@ -1233,10 +1502,12 @@ exports.payMultipleOrders = async (req, res) => {
       return res.status(400).json({ error: "Liste des commandes vide" });
     }
 
-    // Récupérer tous les items liés
+    // Récupérer les lignes (items) de toutes les commandes
     const placeholders = orderIds.map(() => "?").join(",");
     const items = await queryAsync(
-      `SELECT * FROM order_items WHERE order_id IN (${placeholders})`,
+      `SELECT order_id, work_type, sub_type, price
+       FROM order_items
+       WHERE order_id IN (${placeholders})`,
       orderIds
     );
 
@@ -1244,40 +1515,46 @@ exports.payMultipleOrders = async (req, res) => {
       return res.status(404).json({ error: "Aucun travail trouvé pour ces commandes." });
     }
 
-    // Préparer les line_items Stripe
+    // Préparer line_items Stripe à partir des prix DB (1 ligne = 1 item)
     const ZERO_DECIMAL = new Set(["JPY", "KRW", "VND", "MGA"]);
     const currency = (process.env.CHECKOUT_CURRENCY || "eur").toLowerCase();
 
     const line_items = items.map((it) => {
-      const amount = Number(it.price) || 0;
+      const unit = Number(it.price) || 0;
       const unit_amount = ZERO_DECIMAL.has(currency.toUpperCase())
-        ? Math.round(amount)
-        : Math.round(amount * 100);
+        ? Math.round(unit)
+        : Math.round(unit * 100);
 
       return {
         price_data: {
           currency,
           product_data: {
-            name: `${it.work_type} - ${it.sub_type || "N/A"} (Commande #${it.order_id})`,
+            name: `${it.work_type} – ${it.sub_type || "N/A"} (Commande #${it.order_id})`,
           },
           unit_amount,
         },
-        quantity: 1,
+        quantity: 1, // pas de colonne quantity en DB → 1 par défaut
       };
     });
 
-    // URL frontend
+    // Total (debug)
+    const total = items.reduce((sum, it) => sum + (Number(it.price) || 0), 0);
+    console.log(`🧾 Paiement multiple pour [${orderIds.join(", ")}] → Total DB: ${total.toFixed(2)} ${currency.toUpperCase()}`);
+
+    // URLs retour
     const FRONTEND_URL = (process.env.FRONTEND_URL || "http://localhost:5173").replace(/\/+$/, "");
     const success_url = `${FRONTEND_URL}/orders?success=true`;
     const cancel_url = `${FRONTEND_URL}/orders?canceled=true`;
 
+    // Création session Stripe
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ["card"],
-      line_items,
       mode: "payment",
+      line_items,
       success_url,
       cancel_url,
-      metadata: { orderIds: orderIds.join(",") }, // important !
+      metadata: { orderIds: orderIds.join(",") },      // 🔑 indispensable pour le webhook
+      client_reference_id: orderIds.join(","),         // 🔎 traçabilité côté Stripe
     });
 
     res.json({ url: session.url });
@@ -1286,4 +1563,5 @@ exports.payMultipleOrders = async (req, res) => {
     res.status(500).json({ error: "Impossible de créer la session Stripe multiple" });
   }
 };
+
 

@@ -66,7 +66,9 @@ export default function OrderList() {
 
   const filterOrders = () => {
     let filtered = orders.filter((o) => {
-      const text = `${o.id} ${o.patient_name || ""} ${o.orderStatus || o.status || ""}`.toLowerCase();
+      const text = `${o.id} ${o.patient_name || ""} ${
+        o.orderStatus || o.status || ""
+      }`.toLowerCase();
       return text.includes(search.toLowerCase());
     });
     setFilteredOrders(filtered);
@@ -84,9 +86,7 @@ export default function OrderList() {
       const files = await getOrderFiles(order.id);
       const prepared = (files || []).map((f) => ({
         ...f,
-        fullUrl: f?.url?.startsWith("/uploads")
-          ? `${API_ORIGIN}${f.url}`
-          : f.url,
+        fullUrl: f?.url?.startsWith("/uploads") ? `${API_ORIGIN}${f.url}` : f.url,
       }));
       setUploadedFiles(prepared);
       setLocalFiles([]);
@@ -108,9 +108,7 @@ export default function OrderList() {
       const files = await getOrderFiles(selectedOrderId);
       const prepared = (files || []).map((f) => ({
         ...f,
-        fullUrl: f?.url?.startsWith("/uploads")
-          ? `${API_ORIGIN}${f.url}`
-          : f.url,
+        fullUrl: f?.url?.startsWith("/uploads") ? `${API_ORIGIN}${f.url}` : f.url,
       }));
       setUploadedFiles(prepared);
       setLocalFiles([]);
@@ -167,17 +165,6 @@ export default function OrderList() {
   const currentOrders = filteredOrders.slice(indexOfFirst, indexOfLast);
   const totalPages = Math.ceil(filteredOrders.length / ORDERS_PER_PAGE);
 
-  /* ✅ Helper affichage dents */
-  const renderTeeth = (data) => {
-    if (Array.isArray(data)) {
-      return data.join(", ");
-    }
-    if (typeof data === "string") {
-      return data; // ex: "[122141]"
-    }
-    return "—";
-  };
-
   return (
     <div className="container-fluid py-4 bg-light">
       {/* HEADER */}
@@ -223,45 +210,119 @@ export default function OrderList() {
                     <td>{order.patient_name || "N/A"}</td>
                     <td>{order.patient_sex || "N/A"}</td>
                     <td>{order.patient_age || "N/A"}</td>
-                    {/* ✅ Travaux sous forme de liste */}
+
+                    {/* ✅ Travaux stylés (sans prix affiché) */}
                     <td>
                       {Array.isArray(order.works) && order.works.length > 0 ? (
-                        <ul className="list-unstyled mb-0 text-start">
-                          {order.works.map((w, i) => (
-                            <li key={i}>
-                              <i className="bi bi-tools text-muted me-1"></i>
-                              {w.work_type} – {w.sub_type || "N/A"} (
-                              {parseFloat(w.price).toFixed(2)} €)
-                            </li>
-                          ))}
-                        </ul>
+                        <div className="d-flex flex-column gap-2">
+                          {order.works.map((w, i) => {
+                            const colorMap = {
+                              Amovible: "#16A34A",
+                              Gouttières: "#FACC15",
+                              Conjointe: "#0EA5E9",
+                              Implant: "#9333EA",
+                            };
+                            const bgColor =
+                              colorMap[w.work_type] || "#1E3A8A";
+
+                            return (
+                              <div
+                                key={i}
+                                className="p-2 rounded text-white fw-bold"
+                                style={{ backgroundColor: bgColor }}
+                              >
+                                <i className="bi bi-check-square me-1"></i>
+                                {w.work_type} – {w.sub_type || "N/A"}
+                              </div>
+                            );
+                          })}
+                        </div>
                       ) : (
                         <span className="text-muted">Aucun travail</span>
                       )}
                     </td>
-                    <td>
-  {Array.isArray(order.works) && order.works.length > 0 ? (
-    <ul className="list-unstyled mb-0">
-      {order.works.map((w, i) => (
-        <li key={i}>{renderTeeth(w.upper_teeth)}</li>
-      ))}
-    </ul>
-  ) : (
-    "—"
-  )}
-</td>
 
-<td>
-  {Array.isArray(order.works) && order.works.length > 0 ? (
-    <ul className="list-unstyled mb-0">
-      {order.works.map((w, i) => (
-        <li key={i}>{renderTeeth(w.lower_teeth)}</li>
-      ))}
-    </ul>
-  ) : (
-    "—"
-  )}
-</td>
+                    {/* ✅ Dents Upper */}
+                    <td>
+                      {Array.isArray(order.works) && order.works.length > 0 ? (
+                        <div className="d-flex flex-wrap gap-1">
+                          {order.works.map((w, i) => {
+                            const colorMap = {
+                              Amovible: "#16A34A",
+                              Gouttières: "#FACC15",
+                              Conjointe: "#0EA5E9",
+                              Implant: "#9333EA",
+                            };
+                            const bgColor =
+                              colorMap[w.work_type] || "#1E3A8A";
+
+                            return Array.isArray(w.upper_teeth) &&
+                              w.upper_teeth.length > 0 ? (
+                              w.upper_teeth.map((t, j) => (
+                                <span
+                                  key={`${i}-u-${j}`}
+                                  className="badge text-white"
+                                  style={{
+                                    fontSize: "0.85rem",
+                                    backgroundColor: bgColor,
+                                  }}
+                                >
+                                  <i className="bi bi-arrow-up-circle me-1"></i>
+                                  {t}
+                                </span>
+                              ))
+                            ) : (
+                              <span key={i} className="text-muted">
+                                —
+                              </span>
+                            );
+                          })}
+                        </div>
+                      ) : (
+                        "—"
+                      )}
+                    </td>
+
+                    {/* ✅ Dents Lower */}
+                    <td>
+                      {Array.isArray(order.works) && order.works.length > 0 ? (
+                        <div className="d-flex flex-wrap gap-1">
+                          {order.works.map((w, i) => {
+                            const colorMap = {
+                              Amovible: "#16A34A",
+                              Gouttières: "#FACC15",
+                              Conjointe: "#0EA5E9",
+                              Implant: "#9333EA",
+                            };
+                            const bgColor =
+                              colorMap[w.work_type] || "#1E3A8A";
+
+                            return Array.isArray(w.lower_teeth) &&
+                              w.lower_teeth.length > 0 ? (
+                              w.lower_teeth.map((t, j) => (
+                                <span
+                                  key={`${i}-l-${j}`}
+                                  className="badge text-white"
+                                  style={{
+                                    fontSize: "0.85rem",
+                                    backgroundColor: bgColor,
+                                  }}
+                                >
+                                  <i className="bi bi-arrow-down-circle me-1"></i>
+                                  {t}
+                                </span>
+                              ))
+                            ) : (
+                              <span key={i} className="text-muted">
+                                —
+                              </span>
+                            );
+                          })}
+                        </div>
+                      ) : (
+                        "—"
+                      )}
+                    </td>
 
                     <td>{order.remark || "—"}</td>
                     <td>
@@ -333,7 +394,9 @@ export default function OrderList() {
                             {uploadedFiles
                               .filter((f) => f.uploadedBy === "dentist")
                               .map((f, i) => {
-                                const ext = (f.originalName || f.storedName || "")
+                                const ext = (
+                                  f.originalName || f.storedName || ""
+                                )
                                   .split(".")
                                   .pop()
                                   .toLowerCase();

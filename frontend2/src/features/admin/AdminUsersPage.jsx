@@ -13,9 +13,7 @@ export default function UsersPage() {
           <div className="card shadow-lg border-0">
             <div className="card-header bg-white border-bottom-0 d-flex justify-content-between align-items-center">
               <h5 className="mb-0 fw-bold text-primary">📋 Tableau des Utilisateurs</h5>
-              <button className="btn btn-sm btn-success">
-                ➕ Ajouter un utilisateur
-              </button>
+              
             </div>
             <div className="card-body">
               <UsersTable />

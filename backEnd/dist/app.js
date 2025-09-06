@@ -30,36 +30,15 @@ try {
 const app = express();
 const server = http.createServer(app);
 
-/* --------------------------- CORS --------------------------- */
-const allowedOrigins = [
-  "http://localhost:5173",              // ton frontend en local (vite)
-  "https://dentolink-t3vr.vercel.app"   // ton frontend en production sur Vercel
-];
-
-app.use(
-  cors({
-    origin: function (origin, callback) {
-      if (!origin || allowedOrigins.includes(origin)) {
-        callback(null, true);
-      } else {
-        callback(new Error("CORS non autorisé : " + origin));
-      }
-    },
-    methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization"],
-    credentials: true,
-  })
-);
-
-/* --------------------------- Socket.IO --------------------------- */
 const io = new Server(server, {
   cors: {
-    origin: allowedOrigins,
+    origin: "http://localhost:5173", // ton frontend
     methods: ["GET", "POST"],
-    credentials: true,
+    credentials: true, // ⚠️ obligatoire si tu utilises withCredentials
   },
 });
 
+/* --------------------------- Gestion Socket.IO --------------------------- */
 const onlineUsers = new Map();
 
 io.on("connection", (socket) => {
@@ -72,6 +51,7 @@ io.on("connection", (socket) => {
 
   socket.on("send_message", (data) => {
     console.log("💬 Nouveau message :", data);
+    // envoi au destinataire spécifique si socket.id connu
     for (let [sockId, uid] of onlineUsers.entries()) {
       if (uid === data.to) {
         io.to(sockId).emit("receive_message", {
@@ -88,6 +68,20 @@ io.on("connection", (socket) => {
     io.emit("online_users", Array.from(onlineUsers.values()));
   });
 });
+
+/* --------------------------- CORS --------------------------- */
+const allowedOrigins = (process.env.CORS_ORIGIN ?? "http://localhost:5173")
+  .split(",")
+  .map((o) => o.trim());
+
+app.use(
+  cors({
+    origin: allowedOrigins,
+    methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+    credentials: true,
+  })
+);
 
 /* ------------------ Sécurité (Stripe CSP inclus) ------------------ */
 app.use(
@@ -142,7 +136,7 @@ app.use((_req, res) => res.status(404).json({ error: "Not Found" }));
 const PORT = Number(process.env.PORT) || 3000;
 
 function startServer() {
-  server.listen(PORT, () => {
+  server.listen(PORT, () => { // ✅ server.listen au lieu de app.listen
     console.log(`🚀 Server running on http://localhost:${PORT}`);
     console.log(`🌐 CORS allowed origins: ${allowedOrigins.join(", ")}`);
     console.log("⚡ Socket.IO prêt !");
@@ -193,4 +187,4 @@ process.on("uncaughtException", (err) =>
   console.error("UNCAUGHT EXCEPTION:", err)
 );
 
-module.exports = { app, io };
+module.exports = { app, io }; // ✅ on exporte aussi io si besoin ailleurs

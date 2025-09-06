@@ -28,7 +28,7 @@ export default function RegisterPage() {
       // soit tu connectes directement si API renvoie token
       if (data.token) {
         login(data.token, data.user);
-        nav("/app", { replace: true });
+        nav("/", { replace: true });
       } else {
         nav("/login", { replace: true });
       }

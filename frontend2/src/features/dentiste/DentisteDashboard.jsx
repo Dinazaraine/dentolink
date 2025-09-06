@@ -151,6 +151,7 @@ export default function DentisteDashboard() {
         </div>
       </div>
     </div>
+    
   );
 }
 

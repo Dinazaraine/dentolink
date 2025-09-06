@@ -19,6 +19,36 @@ const API_ORIGIN = (() => {
   }
 })();
 
+// 🎨 Couleurs fixes par type de travail (Bootstrap 5.3)
+const WORK_TYPE_COLORS = {
+  Conjointe: {
+    chip: "bg-primary text-white",
+    pill: "bg-primary-subtle text-primary",
+    dot: "#0d6efd",
+  },
+  Amovible: {
+    chip: "bg-success text-white",
+    pill: "bg-success-subtle text-success",
+    dot: "#198754",
+  },
+  Gouttières: {
+    chip: "bg-warning text-dark",
+    pill: "bg-warning-subtle text-warning",
+    dot: "#ffc107",
+  },
+  Implant: {
+    chip: "bg-info text-dark",
+    pill: "bg-info-subtle text-info",
+    dot: "#0dcaf0",
+  },
+  default: {
+    chip: "bg-secondary text-white",
+    pill: "bg-secondary-subtle text-secondary",
+    dot: "#6c757d",
+  },
+};
+const colorFor = (type) => WORK_TYPE_COLORS[type] || WORK_TYPE_COLORS.default;
+
 // ✅ helper pour afficher les dents
 const renderTeeth = (data) => {
   if (Array.isArray(data)) return data.join(", ");
@@ -69,7 +99,9 @@ export default function OrderList() {
   // ✅ Paiement = uniquement commandes non payées
   const handlePaySelected = async () => {
     const unpaidOrders = orders
-      .filter((o) => selectedOrders.includes(o.id) && o.paymentStatus !== "paye")
+      .filter(
+        (o) => selectedOrders.includes(o.id) && o.paymentStatus !== "paye"
+      )
       .map((o) => o.id);
 
     if (unpaidOrders.length === 0) {
@@ -160,7 +192,10 @@ export default function OrderList() {
 
       {/* Boutons de sélection */}
       <div className="mb-3 d-flex gap-2">
-        <button className="btn btn-outline-primary" onClick={handleSelectAllPanier}>
+        <button
+          className="btn btn-outline-primary"
+          onClick={handleSelectAllPanier}
+        >
           <i className="bi bi-check2-all me-1"></i>
           Sélectionner tous les paniers
         </button>
@@ -208,6 +243,7 @@ export default function OrderList() {
 
                 return (
                   <tr key={order.id}>
+                    {/* Sélection */}
                     <td className="text-center">
                       <input
                         type="checkbox"
@@ -215,37 +251,93 @@ export default function OrderList() {
                         onChange={() => toggleSelect(order.id)}
                       />
                     </td>
+                    {/* ID */}
                     <td className="fw-bold text-primary">#{order.id}</td>
+                    {/* Patient */}
                     <td>{order.patient_name || "N/A"}</td>
                     <td>{order.patient_sex || "N/A"}</td>
                     <td>{order.patient_age || "N/A"}</td>
+
+                    {/* Travaux */}
                     <td>
                       {(order.works || []).length > 0 ? (
                         <ul className="list-unstyled mb-0">
-                          {order.works.map((it, idx) => (
-                            <li key={idx}>
-                              <i className="bi bi-tools me-1 text-muted"></i>
-                              {it.work_type} – {it.sub_type} ({it.price} €){" "}
-                              {it.teeth ? <small>[{it.teeth}]</small> : null}
-                            </li>
-                          ))}
+                          {order.works.map((it, idx) => {
+                            const c = colorFor(it.work_type);
+                            return (
+                              <li
+                                key={idx}
+                                className={`p-1 rounded mb-1 ${c.chip}`}
+                                style={{ fontSize: "0.9rem" }}
+                                title={`${it.work_type} – ${it.sub_type}`}
+                              >
+                                <i className="bi bi-clipboard-check me-1"></i>
+                                <strong>{it.work_type}</strong> – {it.sub_type} (
+                                {Number(it.price).toFixed(2)} €)
+                                {it.teeth ? (
+                                  <small className="ms-1">[{it.teeth}]</small>
+                                ) : null}
+                              </li>
+                            );
+                          })}
                         </ul>
                       ) : (
                         <span className="text-muted">Aucun travail</span>
                       )}
                     </td>
-                    {/* ✅ Affichage Upper / Lower */}
+
+                    {/* Upper */}
                     <td>
-                      {(order.works || []).map((it, idx) => (
-                        <div key={idx}>{renderTeeth(it.upper_teeth)}</div>
-                      ))}
+                      {(order.works || []).map((it, idx) => {
+                        const c = colorFor(it.work_type);
+                        const v = renderTeeth(it.upper_teeth);
+                        if (!v || v === "—")
+                          return (
+                            <div key={idx} className="text-muted">
+                              —
+                            </div>
+                          );
+                        return (
+                          <div key={idx} className="mb-1">
+                            <span
+                              className={`badge rounded-pill ${c.pill}`}
+                              title={`Upper – ${it.work_type}`}
+                            >
+                              <i className="bi bi-arrow-up me-1"></i> {v}
+                            </span>
+                          </div>
+                        );
+                      })}
                     </td>
+
+                    {/* Lower */}
                     <td>
-                      {(order.works || []).map((it, idx) => (
-                        <div key={idx}>{renderTeeth(it.lower_teeth)}</div>
-                      ))}
+                      {(order.works || []).map((it, idx) => {
+                        const c = colorFor(it.work_type);
+                        const v = renderTeeth(it.lower_teeth);
+                        if (!v || v === "—")
+                          return (
+                            <div key={idx} className="text-muted">
+                              —
+                            </div>
+                          );
+                        return (
+                          <div key={idx} className="mb-1">
+                            <span
+                              className={`badge rounded-pill ${c.pill}`}
+                              title={`Lower – ${it.work_type}`}
+                            >
+                              <i className="bi bi-arrow-down me-1"></i> {v}
+                            </span>
+                          </div>
+                        );
+                      })}
                     </td>
+
+                    {/* Modèle */}
                     <td>{order.model || "-"}</td>
+
+                    {/* Remarques */}
                     <td>
                       {isExpanded ? remark : shortRemark}{" "}
                       {remark.length > 15 && (
@@ -257,7 +349,8 @@ export default function OrderList() {
                         </button>
                       )}
                     </td>
-                    {/* ✅ Fichiers dentiste : visibles uniquement si commande terminée */}
+
+                    {/* Fichiers dentiste */}
                     <td>
                       {status === "terminee" ? (
                         (order.files || []).filter(
@@ -292,6 +385,8 @@ export default function OrderList() {
                         </span>
                       )}
                     </td>
+
+                    {/* Fichiers utilisateur */}
                     <td>
                       {(order.files || []).filter(
                         (f) => f.uploadedBy === "user"
@@ -320,6 +415,8 @@ export default function OrderList() {
                         <span className="text-muted">Aucun fichier</span>
                       )}
                     </td>
+
+                    {/* Statut commande */}
                     <td className="text-center">
                       <span
                         className={`badge ${
@@ -333,6 +430,8 @@ export default function OrderList() {
                         {status}
                       </span>
                     </td>
+
+                    {/* Statut paiement */}
                     <td className="text-center">
                       <span
                         className={`badge ${
@@ -346,6 +445,8 @@ export default function OrderList() {
                         {payment}
                       </span>
                     </td>
+
+                    {/* Total */}
                     <td className="fw-bold text-end text-success">
                       {subtotal.toFixed(2)} €
                     </td>
@@ -373,17 +474,24 @@ export default function OrderList() {
               key={i}
               className={`page-item ${currentPage === i + 1 ? "active" : ""}`}
             >
-              <button className="page-link" onClick={() => setCurrentPage(i + 1)}>
+              <button
+                className="page-link"
+                onClick={() => setCurrentPage(i + 1)}
+              >
                 {i + 1}
               </button>
             </li>
           ))}
           <li
-            className={`page-item ${currentPage === totalPages ? "disabled" : ""}`}
+            className={`page-item ${
+              currentPage === totalPages ? "disabled" : ""
+            }`}
           >
             <button
               className="page-link"
-              onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+              onClick={() =>
+                setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+              }
             >
               Suivant <i className="bi bi-chevron-right"></i>
             </button>

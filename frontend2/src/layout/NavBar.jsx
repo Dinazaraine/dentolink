@@ -139,7 +139,7 @@ export default function NavBar() {
               <li>
                 <NavLink to="/orders" className="nav-link text-white d-flex align-items-center">
                   <i className="bi bi-cart4 me-2"></i>
-                  {!collapsed && "Commandes"}
+                  {!collapsed && "Crée Commandes"}
                 </NavLink>
               </li>
             </>
@@ -200,16 +200,18 @@ export default function NavBar() {
           {token ? (
             <>
               {!collapsed && user && (
-                <div
-                  className="mb-2 text-center"
-                  style={{ cursor: "pointer" }}
-                  onClick={() => setShowModal(true)}
-                >
-                  <span className="badge bg-light text-dark px-3 py-2">
-                    {user.companyName || `${user.firstName} ${user.lastName}`}
-                  </span>
-                </div>
-              )}
+  <div
+    className="mb-2 text-center"
+    style={{ cursor: "pointer" }}
+    onClick={() => setShowModal(true)}
+  >
+    <span className="badge bg-light text-dark px-3 py-2">
+      <i className="bi bi-gear me-2"></i>
+      {user.companyName || `${user.firstName} ${user.lastName}`}
+    </span>
+  </div>
+)}
+
               <button className="btn btn-outline-light btn-sm w-100" onClick={handleLogout}>
                 <i className="bi bi-box-arrow-right me-1"></i>
                 {!collapsed && "Se déconnecter"}
@@ -252,95 +254,148 @@ export default function NavBar() {
           MODAL PROFIL
       ===================== */}
       {showModal && (
-        <div
-          className="modal show fade d-block"
-          tabIndex="-1"
-          style={{ background: "rgba(0,0,0,.5)" }}
-        >
-          <div className="modal-dialog">
-            <div className="modal-content">
-              <div className="modal-header">
-                <h5 className="modal-title">Modifier mon profil</h5>
-                <button type="button" className="btn-close" onClick={() => setShowModal(false)}></button>
-              </div>
-              <div className="modal-body">
-                {/* Infos entreprise */}
-                <div className="mb-2">
-                  <label className="form-label">Nom de l’entreprise</label>
-                  <input
-                    className="form-control"
-                    value={form.companyName}
-                    onChange={(e) => setForm((f) => ({ ...f, companyName: e.target.value }))}
-                  />
-                </div>
-                <div className="mb-2">
-                  <label className="form-label">Email</label>
-                  <input
-                    type="email"
-                    className="form-control"
-                    value={form.email}
-                    onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))}
-                  />
-                </div>
-                <div className="mb-2">
-                  <label className="form-label">Téléphone fixe</label>
-                  <input
-                    className="form-control"
-                    value={form.phone_fixed}
-                    onChange={(e) => setForm((f) => ({ ...f, phone_fixed: e.target.value }))}
-                  />
-                </div>
-                <div className="mb-2">
-                  <label className="form-label">Téléphone mobile</label>
-                  <input
-                    className="form-control"
-                    value={form.phone_mobile}
-                    onChange={(e) => setForm((f) => ({ ...f, phone_mobile: e.target.value }))}
-                  />
-                </div>
-                <div className="mb-2">
-                  <label className="form-label">Adresse</label>
-                  <input
-                    className="form-control"
-                    value={form.address}
-                    onChange={(e) => setForm((f) => ({ ...f, address: e.target.value }))}
-                  />
-                </div>
+  <div
+    className="modal show fade d-block"
+    tabIndex="-1"
+    style={{ background: "rgba(0,0,0,.5)" }}
+  >
+    <div className="modal-dialog">
+      <div className="modal-content">
+        <div className="modal-header">
+          <h5 className="modal-title">
+            <i className="bi bi-person-circle me-2"></i>
+            Modifier mon profil
+          </h5>
+          <button
+            type="button"
+            className="btn-close"
+            onClick={() => setShowModal(false)}
+          ></button>
+        </div>
 
-                <hr />
-                {/* Changement de mot de passe */}
-                <h6>Changer mon mot de passe</h6>
-                <div className="mb-2">
-                  <label className="form-label">Nouveau mot de passe</label>
-                  <input
-                    type="password"
-                    className="form-control"
-                    value={passwords.newPassword}
-                    onChange={(e) => setPasswords((p) => ({ ...p, newPassword: e.target.value }))}
-                  />
-                </div>
-                <div className="mb-2">
-                  <label className="form-label">Confirmer mot de passe</label>
-                  <input
-                    type="password"
-                    className="form-control"
-                    value={passwords.confirmPassword}
-                    onChange={(e) => setPasswords((p) => ({ ...p, confirmPassword: e.target.value }))}
-                  />
-                </div>
-              </div>
-              <div className="modal-footer">
-                <button className="btn btn-secondary" onClick={() => setShowModal(false)}>
-                  Annuler
-                </button>
-                <button className="btn btn-primary" onClick={handleSave}>
-                  Enregistrer
-                </button>
-              </div>
-            </div>
+        <div className="modal-body">
+          {/* Infos entreprise */}
+          <div className="mb-2">
+            <label className="form-label">
+              <i className="bi bi-building me-1"></i> Nom de l’entreprise
+            </label>
+            <input
+              className="form-control"
+              value={form.companyName}
+              onChange={(e) =>
+                setForm((f) => ({ ...f, companyName: e.target.value }))
+              }
+            />
+          </div>
+
+          <div className="mb-2">
+            <label className="form-label">
+              <i className="bi bi-envelope-at me-1"></i> Email
+            </label>
+            <input
+              type="email"
+              className="form-control"
+              value={form.email}
+              onChange={(e) =>
+                setForm((f) => ({ ...f, email: e.target.value }))
+              }
+            />
+          </div>
+
+          <div className="mb-2">
+            <label className="form-label">
+              <i className="bi bi-telephone me-1"></i> Téléphone fixe
+            </label>
+            <input
+              className="form-control"
+              value={form.phone_fixed}
+              onChange={(e) =>
+                setForm((f) => ({ ...f, phone_fixed: e.target.value }))
+              }
+            />
+          </div>
+
+          <div className="mb-2">
+            <label className="form-label">
+              <i className="bi bi-phone me-1"></i> Téléphone mobile
+            </label>
+            <input
+              className="form-control"
+              value={form.phone_mobile}
+              onChange={(e) =>
+                setForm((f) => ({ ...f, phone_mobile: e.target.value }))
+              }
+            />
+          </div>
+
+          <div className="mb-2">
+            <label className="form-label">
+              <i className="bi bi-geo-alt me-1"></i> Adresse
+            </label>
+            <input
+              className="form-control"
+              value={form.address}
+              onChange={(e) =>
+                setForm((f) => ({ ...f, address: e.target.value }))
+              }
+            />
+          </div>
+
+          <hr />
+          {/* Changement de mot de passe */}
+          <h6>
+            <i className="bi bi-key me-2"></i>
+            Changer mon mot de passe
+          </h6>
+
+          <div className="mb-2">
+            <label className="form-label">
+              <i className="bi bi-lock me-1"></i> Nouveau mot de passe
+            </label>
+            <input
+              type="password"
+              className="form-control"
+              value={passwords.newPassword}
+              onChange={(e) =>
+                setPasswords((p) => ({ ...p, newPassword: e.target.value }))
+              }
+            />
+          </div>
+
+          <div className="mb-2">
+            <label className="form-label">
+              <i className="bi bi-lock-fill me-1"></i> Confirmer mot de passe
+            </label>
+            <input
+              type="password"
+              className="form-control"
+              value={passwords.confirmPassword}
+              onChange={(e) =>
+                setPasswords((p) => ({
+                  ...p,
+                  confirmPassword: e.target.value,
+                }))
+              }
+            />
           </div>
         </div>
-      )}
+
+        <div className="modal-footer">
+          <button
+            className="btn btn-secondary"
+            onClick={() => setShowModal(false)}
+          >
+            <i className="bi bi-x-circle me-1"></i> Annuler
+          </button>
+          <button className="btn btn-primary" onClick={handleSave}>
+            <i className="bi bi-save me-1"></i> Enregistrer
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+)}
+
     </>
   );
 }

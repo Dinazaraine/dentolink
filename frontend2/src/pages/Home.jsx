@@ -58,14 +58,7 @@ export default function Home() {
       <nav className="navbar navbar-expand-lg navbar-light border-bottom mb-4">
         <div className="container-fluid">
           <h1 className="navbar-brand fw-bold">Bienvenue</h1>
-          <div className="d-flex gap-2">
-            <Link className="btn btn-outline-secondary" to="clients">Clients</Link>
-            <Link className="btn btn-outline-secondary" to="products">Produits</Link>
-            <Link className="btn btn-primary" to="orders">Créer commande</Link>
-            <button className="btn btn-primary" onClick={() => setChatOpen(!chatOpen)}>
-              <FaComments /> Contacter
-            </button>
-          </div>
+          
         </div>
       </nav>
 

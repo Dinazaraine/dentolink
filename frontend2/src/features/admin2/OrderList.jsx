@@ -89,14 +89,14 @@ export default function OrderList() {
     }
   };
 
-  // ✅ Filtrage par recherche
+  // ✅ Filtrage recherche
   const filteredOrders = orders.filter((o) => {
     const s = search.toLowerCase();
     return (
       o.id.toString().includes(s) ||
       (o.patient_name || "").toLowerCase().includes(s) ||
-      (o.work_type || "").toLowerCase().includes(s) ||
-      (o.status || o.orderStatus || "").toLowerCase().includes(s)
+      (o.status || o.orderStatus || "").toLowerCase().includes(s) ||
+      (o.paymentStatus || "").toLowerCase().includes(s)
     );
   });
 
@@ -105,6 +105,14 @@ export default function OrderList() {
   const indexOfLast = currentPage * ORDERS_PER_PAGE;
   const indexOfFirst = indexOfLast - ORDERS_PER_PAGE;
   const currentOrders = filteredOrders.slice(indexOfFirst, indexOfLast);
+
+  // ✅ Couleurs par type de travail
+  const colorMap = {
+    Amovible: "#16A34A",
+    Gouttières: "#FACC15",
+    Conjointe: "#0EA5E9",
+    Implant: "#9333EA",
+  };
 
   return (
     <div className="container py-4">
@@ -127,20 +135,24 @@ export default function OrderList() {
       <table className="table table-striped table-hover align-middle shadow-sm">
         <thead className="table-dark">
           <tr>
-            <th><i className="bi bi-hash"></i> ID</th>
-            <th><i className="bi bi-person"></i> Patient</th>
-            <th><i className="bi bi-gender-ambiguous"></i> Sexe</th>
-            <th><i className="bi bi-person-badge"></i> Âge</th>
-            <th><i className="bi bi-tools"></i> Travail</th>
-            <th><i className="bi bi-diagram-3"></i> Sub-type</th>
-            <th><i className="bi bi-flag"></i> Statut</th>
-            <th><i className="bi bi-cash-coin"></i> Total</th>
-            <th className="text-center"><i className="bi bi-gear"></i> Actions</th>
+            <th><i className="bi bi-hash me-1"></i> ID</th>
+            <th><i className="bi bi-person me-1"></i> Patient</th>
+            <th><i className="bi bi-gender-ambiguous me-1"></i> Sexe</th>
+            <th><i className="bi bi-person-badge me-1"></i> Âge</th>
+            <th><i className="bi bi-tools me-1"></i> Travaux</th>
+            <th><i className="bi bi-arrow-up-circle me-1"></i> Upper</th>
+            <th><i className="bi bi-arrow-down-circle me-1"></i> Lower</th>
+            <th><i className="bi bi-chat-left-text me-1"></i> Remarque</th>
+            <th><i className="bi bi-flag me-1"></i> Statut</th>
+            <th><i className="bi bi-cash-coin me-1"></i> Paiement</th>
+            <th><i className="bi bi-currency-euro me-1"></i> Total</th>
+            <th className="text-center"><i className="bi bi-gear me-1"></i> Actions</th>
           </tr>
         </thead>
         <tbody>
           {currentOrders.map((order) => {
             const status = order.orderStatus || order.status || "en_attente";
+            const payment = order.paymentStatus || "panier";
             return (
               <>
                 <tr key={order.id}>
@@ -148,8 +160,92 @@ export default function OrderList() {
                   <td>{order.patient_name || "N/A"}</td>
                   <td>{order.patient_sex || "N/A"}</td>
                   <td>{order.patient_age || "N/A"}</td>
-                  <td>{order.work_type || "N/A"}</td>
-                  <td>{order.sub_type || "N/A"}</td>
+
+                  {/* ✅ Travaux */}
+                  <td>
+                    {Array.isArray(order.works) && order.works.length > 0 ? (
+                      <div className="d-flex flex-column gap-2">
+                        {order.works.map((w, i) => {
+                          const bgColor = colorMap[w.work_type] || "#1E3A8A";
+                          return (
+                            <div
+                              key={i}
+                              className="p-2 rounded text-white fw-bold"
+                              style={{ backgroundColor: bgColor }}
+                            >
+                              <i className="bi bi-tools me-1"></i>
+                              {w.work_type} – {w.sub_type || "N/A"}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    ) : (
+                      <span className="text-muted">Aucun travail</span>
+                    )}
+                  </td>
+
+                  {/* ✅ Upper */}
+                  <td>
+                    {Array.isArray(order.works) && order.works.length > 0 ? (
+                      <div className="d-flex flex-wrap gap-1">
+                        {order.works.map((w, i) =>
+                          (w.upper_teeth || []).length > 0 ? (
+                            w.upper_teeth.map((t, j) => (
+                              <span
+                                key={`${i}-u-${j}`}
+                                className="badge text-white"
+                                style={{
+                                  backgroundColor:
+                                    colorMap[w.work_type] || "#1E3A8A",
+                                }}
+                              >
+                                <i className="bi bi-arrow-up-circle me-1"></i>
+                                {t}
+                              </span>
+                            ))
+                          ) : (
+                            <span key={i} className="text-muted">—</span>
+                          )
+                        )}
+                      </div>
+                    ) : (
+                      "—"
+                    )}
+                  </td>
+
+                  {/* ✅ Lower */}
+                  <td>
+                    {Array.isArray(order.works) && order.works.length > 0 ? (
+                      <div className="d-flex flex-wrap gap-1">
+                        {order.works.map((w, i) =>
+                          (w.lower_teeth || []).length > 0 ? (
+                            w.lower_teeth.map((t, j) => (
+                              <span
+                                key={`${i}-l-${j}`}
+                                className="badge text-white"
+                                style={{
+                                  backgroundColor:
+                                    colorMap[w.work_type] || "#1E3A8A",
+                                }}
+                              >
+                                <i className="bi bi-arrow-down-circle me-1"></i>
+                                {t}
+                              </span>
+                            ))
+                          ) : (
+                            <span key={i} className="text-muted">—</span>
+                          )
+                        )}
+                      </div>
+                    ) : (
+                      "—"
+                    )}
+                  </td>
+
+                  {/* ✅ Remarque */}
+                  <td>{order.remark || "—"}</td>
+
+                  {/* ✅ Statut commande */}
                   <td>
                     <span
                       className={`badge ${
@@ -163,7 +259,24 @@ export default function OrderList() {
                       {status}
                     </span>
                   </td>
+
+                  {/* ✅ Statut paiement */}
+                  <td>
+                    <span
+                      className={`badge ${
+                        payment === "paye"
+                          ? "bg-success"
+                          : payment === "rembourse"
+                          ? "bg-info text-dark"
+                          : "bg-secondary"
+                      }`}
+                    >
+                      {payment}
+                    </span>
+                  </td>
+
                   <td>{order.total ? `${order.total} €` : "N/A"}</td>
+
                   <td className="text-center">
                     <div className="btn-group">
                       <button
@@ -172,51 +285,35 @@ export default function OrderList() {
                             ? "btn-secondary"
                             : "btn-info text-white"
                         }`}
-                        data-bs-toggle="collapse"
-                        data-bs-target={`#collapse-${order.id}`}
                         onClick={() => handleSelect(order)}
                       >
-                        <i
-                          className={`bi ${
-                            selectedOrder?.id === order.id
-                              ? "bi-x-circle"
-                              : "bi-eye"
-                          }`}
-                        ></i>{" "}
                         {selectedOrder?.id === order.id ? "Fermer" : "Voir"}
                       </button>
-
                       <button
                         className="btn btn-sm btn-success"
                         disabled={updatingId === order.id}
                         onClick={() => handleStatusChange(order.id, "terminee")}
                       >
-                        <i className="bi bi-check2"></i> Terminer
+                        Terminer
                       </button>
-
                       <button
                         className="btn btn-sm btn-danger"
                         onClick={() => handleDelete(order.id)}
                       >
-                        <i className="bi bi-trash"></i> Supprimer
+                        Supprimer
                       </button>
                     </div>
                   </td>
                 </tr>
 
-                {/* ✅ Collapse Bootstrap pour fichiers */}
-                <tr>
-                  <td colSpan="9" className="p-0 border-0">
-                    <div
-                      id={`collapse-${order.id}`}
-                      className={`collapse ${
-                        selectedOrder?.id === order.id ? "show" : ""
-                      }`}
-                    >
+                {/* ✅ Collapse fichiers */}
+                {selectedOrder?.id === order.id && (
+                  <tr>
+                    <td colSpan="12" className="p-0 border-0">
                       <div className="card card-body bg-light">
-                        <h5 className="mb-3">
+                        <h5 className="mb-3 text-primary">
                           <i className="bi bi-folder2-open me-2"></i>
-                          Détails commande #{order.id}
+                          Fichiers commande #{order.id}
                         </h5>
                         <FileActions
                           files={uploadedFiles}
@@ -225,16 +322,16 @@ export default function OrderList() {
                           orderId={order.id}
                         />
                       </div>
-                    </div>
-                  </td>
-                </tr>
+                    </td>
+                  </tr>
+                )}
               </>
             );
           })}
         </tbody>
       </table>
 
-      {/* ✅ Pagination Bootstrap */}
+      {/* ✅ Pagination */}
       {totalPages > 1 && (
         <nav className="mt-4">
           <ul className="pagination justify-content-center">
@@ -243,7 +340,7 @@ export default function OrderList() {
                 className="page-link"
                 onClick={() => setCurrentPage((p) => p - 1)}
               >
-                <i className="bi bi-arrow-left"></i> Précédent
+                ⬅ Précédent
               </button>
             </li>
             {Array.from({ length: totalPages }, (_, i) => (
@@ -268,7 +365,7 @@ export default function OrderList() {
                 className="page-link"
                 onClick={() => setCurrentPage((p) => p + 1)}
               >
-                Suivant <i className="bi bi-arrow-right"></i>
+                Suivant ➡
               </button>
             </li>
           </ul>
