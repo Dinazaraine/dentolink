@@ -5,8 +5,8 @@ const dotenv = require("dotenv");
 const cors = require("cors");
 const helmet = require("helmet");
 const path = require("path");
-const http = require("http");         // ✅ nécessaire pour socket.io
-const { Server } = require("socket.io"); // ✅ socket.io
+const http = require("http");
+const { Server } = require("socket.io");
 
 dotenv.config();
 
@@ -30,11 +30,24 @@ try {
 const app = express();
 const server = http.createServer(app);
 
+// Configuration des origines autorisées
+const allowedOrigins = (process.env.CORS_ORIGIN || "http://localhost:5173,https://dentolink-5h6k-b60theob0-dinazars-projects.vercel.app")
+  .split(",")
+  .map((o) => o.trim())
+  .filter((o) => o);
+
+// Ajout de votre domaine Vercel s'il n'est pas déjà dans la liste
+const vercelDomain = "https://dentolink-5h6k-b60theob0-dinazars-projects.vercel.app";
+if (!allowedOrigins.includes(vercelDomain)) {
+  allowedOrigins.push(vercelDomain);
+}
+
+// Configuration de Socket.IO avec les origines autorisées
 const io = new Server(server, {
   cors: {
-    origin: "http://localhost:5173", // domaine de développement
+    origin: allowedOrigins,
     methods: ["GET", "POST"],
-    credentials: true,              // ⚠️ obligatoire si tu utilises withCredentials
+    credentials: true,
   },
 });
 
@@ -69,22 +82,20 @@ io.on("connection", (socket) => {
   });
 });
 
-/* --------------------------- CORS --------------------------- */
-// Récupère les origines autorisées depuis CORS_ORIGIN, ou fallback sur localhost
-const allowedOrigins = (process.env.CORS_ORIGIN ?? "http://localhost:5173")
-  .split(",")
-  .map((o) => o.trim())
-  .filter((o) => o);
-
-// Ajoute manuellement votre domaine Vercel s'il n'est pas dans la liste
-const vercelDomain = "https://dentolink-qyyh.vercel.app";
-if (!allowedOrigins.includes(vercelDomain)) {
-  allowedOrigins.push(vercelDomain);
-}
-
+/* --------------------------- Configuration CORS --------------------------- */
 app.use(
   cors({
-    origin: allowedOrigins,
+    origin: function (origin, callback) {
+      // Autoriser les requêtes sans origine (comme les applications mobiles, Postman, etc.)
+      if (!origin) return callback(null, true);
+      
+      if (allowedOrigins.indexOf(origin) === -1) {
+        const msg = `The CORS policy for this site does not allow access from the specified Origin: ${origin}`;
+        console.warn("CORS bloqué pour l'origine:", origin);
+        return callback(new Error(msg), false);
+      }
+      return callback(null, true);
+    },
     methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
     credentials: true,
@@ -126,7 +137,19 @@ console.log("📂 Uploads servis depuis :", uploadDir);
 
 /* ------------------------------ Healthcheck ------------------------------ */
 app.get("/health", (_req, res) => {
-  res.json({ ok: true, env: process.env.NODE_ENV ?? "development" });
+  res.json({ 
+    ok: true, 
+    env: process.env.NODE_ENV || "development",
+    allowedOrigins: allowedOrigins
+  });
+});
+
+/* -------------------------- Test CORS route -------------------------- */
+app.get("/api/cors-test", (_req, res) => {
+  res.json({ 
+    message: "CORS est configuré correctement!",
+    allowedOrigins: allowedOrigins
+  });
 });
 
 /* --------------------------------- Routes --------------------------------- */
